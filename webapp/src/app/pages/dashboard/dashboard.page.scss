@@ -1,3 +1,14 @@
+.menu-logo {
+  text-align: center;
+  padding: 8px 16px;
+
+  img {
+    max-width: 140px;
+    height: auto;
+    filter: brightness(0) invert(1);
+  }
+}
+
 .guided-flow-section {
   margin: 10px 12px 14px;
   background: var(--ion-color-light);
