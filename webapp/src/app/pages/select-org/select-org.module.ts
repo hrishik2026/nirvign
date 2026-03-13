@@ -1,0 +1,12 @@
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonicModule } from '@ionic/angular';
+import { RouterModule } from '@angular/router';
+import { SelectOrgPage } from './select-org.page';
+
+@NgModule({
+  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild([{ path: '', component: SelectOrgPage }])],
+  declarations: [SelectOrgPage]
+})
+export class SelectOrgPageModule {}

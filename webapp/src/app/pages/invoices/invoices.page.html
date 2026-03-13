@@ -1,0 +1,111 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Invoices</ion-title>
+  </ion-toolbar>
+  <ion-toolbar class="search-toolbar">
+    <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterInvoices()" placeholder="Search by invoice #, customer..."></ion-searchbar>
+    <ion-buttons slot="end">
+      <ion-button fill="outline" color="primary" shape="round" (click)="createInvoice()">
+        <ion-icon name="add" slot="start"></ion-icon>
+        Create Invoice
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Empty state -->
+  <div *ngIf="filteredInvoices.length === 0" class="empty-state">
+    <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
+    <h2>No invoices found</h2>
+    <p>Create your first invoice to get started.</p>
+    <ion-button fill="outline" color="primary" shape="round" (click)="createInvoice()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      Create Invoice
+    </ion-button>
+  </div>
+
+  <!-- Invoice table -->
+  <div *ngIf="filteredInvoices.length > 0" class="list-container">
+    <div class="list-header">
+      <span class="col inv-num">Invoice #</span>
+      <span class="col date">Date</span>
+      <span class="col customer">Customer</span>
+      <span class="col amount">Amount</span>
+      <span class="col status">Status</span>
+      <span class="col actions">Actions</span>
+    </div>
+    <div class="list-row" *ngFor="let inv of filteredInvoices">
+      <span class="col inv-num">{{ inv.invoice_number }}</span>
+      <span class="col date">{{ inv.invoice_date }}</span>
+      <span class="col customer">{{ inv.customer_name }}</span>
+      <span class="col amount">{{ inv.total_amount | inr }}</span>
+      <span class="col status">
+        <ion-badge [color]="getStatusColor(inv.status)" class="status-badge" (click)="openStatusEdit(inv, $event)">
+          {{ inv.status | titlecase }}
+        </ion-badge>
+      </span>
+      <span class="col actions">
+        <ion-button *ngIf="inv.status === 'draft'" fill="clear" color="primary" size="small" (click)="editInvoice(inv)">
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="danger" size="small" (click)="confirmDelete(inv)">
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </span>
+    </div>
+  </div>
+
+  <!-- Status Edit Popup -->
+  <div *ngIf="statusEdit" class="status-popup-backdrop" (click)="closeStatusEdit()"></div>
+  <div *ngIf="statusEdit" class="status-popup" [style.top.px]="statusEdit.y" [style.left.px]="statusEdit.x">
+    <div class="status-popup-header">
+      Update Status
+      <ion-button fill="clear" size="small" (click)="closeStatusEdit()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+    <div class="status-popup-body">
+      <label>Status</label>
+      <select [(ngModel)]="statusEdit.newStatus">
+        <option value="draft">Draft</option>
+        <option value="sent">Sent</option>
+        <option value="paid">Paid</option>
+        <option value="overdue">Overdue</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <label>Date (optional)</label>
+      <input type="date" [(ngModel)]="statusEdit.date">
+      <div class="status-popup-actions">
+        <ion-button fill="outline" color="primary" size="small" shape="round" (click)="saveStatusEdit()">
+          <ion-icon name="checkmark" slot="start"></ion-icon>
+          Save
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <div *ngIf="deleteTarget" class="confirm-backdrop" (click)="cancelDelete()"></div>
+  <div *ngIf="deleteTarget" class="confirm-dialog">
+    <div class="confirm-icon">
+      <ion-icon name="warning-outline" color="danger"></ion-icon>
+    </div>
+    <h3>Delete Invoice?</h3>
+    <p>Are you sure you want to delete invoice <strong>{{ deleteTarget.invoice_number }}</strong> for <strong>{{ deleteTarget.customer_name }}</strong>? This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <ion-button fill="outline" color="medium" size="small" shape="round" (click)="cancelDelete()">Cancel</ion-button>
+      <ion-button fill="outline" color="danger" size="small" shape="round" (click)="doDelete()">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Delete
+      </ion-button>
+    </div>
+  </div>
+
+</ion-content>

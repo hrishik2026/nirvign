@@ -1,0 +1,133 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Customers</ion-title>
+  </ion-toolbar>
+  <ion-toolbar class="search-toolbar">
+    <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterCustomers()" placeholder="Search by name, account, email, city..."></ion-searchbar>
+    <ion-buttons slot="end">
+      <ion-button fill="outline" color="primary" shape="round" (click)="openForm()">
+        <ion-icon name="add" slot="start"></ion-icon>
+        Add Customer
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Add / Edit Form -->
+  <ion-card *ngIf="showForm" class="form-card">
+    <ion-card-header>
+      <ion-card-title class="form-title">
+        {{ editingId ? 'Edit' : 'Add' }} Customer
+        <ion-button fill="clear" size="small" (click)="closeForm()">
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-item><ion-input label="Name *" labelPlacement="stacked" [(ngModel)]="name" placeholder="Customer name"></ion-input></ion-item>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-item><ion-input label="Account Number *" labelPlacement="stacked" [(ngModel)]="accountNumber" placeholder="e.g. CUST-001"></ion-input></ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-item><ion-input label="Email" labelPlacement="stacked" type="email" [(ngModel)]="email" placeholder="email@example.com"></ion-input></ion-item>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-item><ion-input label="Phone" labelPlacement="stacked" type="tel" [(ngModel)]="phone" placeholder="Phone number"></ion-input></ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-item><ion-input label="GSTIN" labelPlacement="stacked" [(ngModel)]="gstin" placeholder="GSTIN"></ion-input></ion-item>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-item><ion-input label="Contact Person" labelPlacement="stacked" [(ngModel)]="contactPerson" placeholder="Contact person name"></ion-input></ion-item>
+          </ion-col>
+        </ion-row>
+        <ion-row>
+          <ion-col size="12" size-md="6">
+            <ion-item><ion-input label="City" labelPlacement="stacked" [(ngModel)]="city" placeholder="City"></ion-input></ion-item>
+          </ion-col>
+          <ion-col size="12" size-md="6">
+            <ion-item><ion-input label="State" labelPlacement="stacked" [(ngModel)]="state" placeholder="State"></ion-input></ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+      <div class="form-actions">
+        <ion-button fill="outline" color="medium" size="small" shape="round" (click)="closeForm()">Cancel</ion-button>
+        <ion-button fill="outline" color="primary" size="small" shape="round" (click)="saveCustomer()">
+          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+          {{ editingId ? 'Update' : 'Save' }}
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Empty state -->
+  <div *ngIf="filteredCustomers.length === 0 && !showForm" class="empty-state">
+    <ion-icon name="people-outline" class="empty-icon"></ion-icon>
+    <h2>No customers found</h2>
+    <p>Add your first customer to get started.</p>
+    <ion-button fill="outline" color="primary" shape="round" (click)="openForm()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      Add Customer
+    </ion-button>
+  </div>
+
+  <!-- Customer table -->
+  <div *ngIf="filteredCustomers.length > 0" class="list-container">
+    <div class="list-header">
+      <span class="col name">Name</span>
+      <span class="col account">Account #</span>
+      <span class="col gstin">GSTIN</span>
+      <span class="col email">Email</span>
+      <span class="col location">City / State</span>
+      <span class="col actions">Actions</span>
+    </div>
+    <div class="list-row" *ngFor="let c of filteredCustomers">
+      <span class="col name">{{ c.name }}</span>
+      <span class="col account">{{ c.account_number }}</span>
+      <span class="col gstin">{{ c.gstin || '—' }}</span>
+      <span class="col email">{{ c.email || '—' }}</span>
+      <span class="col location">{{ c.city }}<span *ngIf="c.city && c.state">, </span>{{ c.state }}</span>
+      <span class="col actions">
+        <ion-button fill="clear" color="primary" size="small" (click)="editCustomer(c)">
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="danger" size="small" (click)="confirmDelete(c)">
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </span>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <div *ngIf="deleteTarget" class="confirm-backdrop" (click)="cancelDelete()"></div>
+  <div *ngIf="deleteTarget" class="confirm-dialog">
+    <div class="confirm-icon">
+      <ion-icon name="warning-outline" color="danger"></ion-icon>
+    </div>
+    <h3>Delete Customer?</h3>
+    <p>Are you sure you want to delete <strong>{{ deleteTarget.name }}</strong>? This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <ion-button fill="outline" color="medium" size="small" shape="round" (click)="cancelDelete()">Cancel</ion-button>
+      <ion-button fill="outline" color="danger" size="small" shape="round" (click)="doDelete()">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Delete
+      </ion-button>
+    </div>
+  </div>
+
+</ion-content>

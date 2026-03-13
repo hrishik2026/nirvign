@@ -1,0 +1,271 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-button (click)="goBack()"><ion-icon name="arrow-back"></ion-icon></ion-button></ion-buttons>
+    <ion-title>Organization</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="activeTab" mode="md">
+      <ion-segment-button value="org"><ion-label>Org Data</ion-label></ion-segment-button>
+      <ion-segment-button value="documents"><ion-label>Documents</ion-label></ion-segment-button>
+      <ion-segment-button value="members"><ion-label>Members</ion-label></ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-grid fixed>
+
+    <!-- ORG DATA TAB -->
+    <ng-container *ngIf="activeTab === 'org'">
+      <ion-card>
+        <ion-card-header>
+          <ion-row class="ion-align-items-center">
+            <ion-col><ion-card-title>Organization Settings</ion-card-title></ion-col>
+            <ion-col size="auto">
+              <ion-badge color="success">{{ org?.status }}</ion-badge>
+            </ion-col>
+          </ion-row>
+        </ion-card-header>
+        <ion-card-content>
+          <div *ngIf="logoUrl" class="ion-text-center ion-margin-bottom">
+            <img [src]="logoUrl" alt="Logo" style="max-height: 80px;">
+          </div>
+
+          <ion-row>
+            <ion-col size="12" size-md="8">
+              <ion-item><ion-label position="floating">Organization Name</ion-label><ion-input [(ngModel)]="orgName" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+            <ion-col size="12" size-md="4">
+              <ion-item>
+                <ion-label position="floating">Default Currency</ion-label>
+                <ion-select [(ngModel)]="defaultCurrency" [disabled]="!isOwner" interface="popover">
+                  <ion-select-option value="INR">INR</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-item-divider><ion-label>Contact Information</ion-label></ion-item-divider>
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item><ion-label position="floating">Email</ion-label><ion-input [(ngModel)]="email" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+            <ion-col size="12" size-md="6">
+              <ion-item><ion-label position="floating">Website</ion-label><ion-input [(ngModel)]="website" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item><ion-label position="floating">Phone</ion-label><ion-input [(ngModel)]="phone" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+            <ion-col size="12" size-md="6">
+              <ion-item><ion-label position="floating">Fax</ion-label><ion-input [(ngModel)]="fax" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-item-divider><ion-label>Address</ion-label></ion-item-divider>
+          <ion-item><ion-label position="floating">Address Line 1</ion-label><ion-input [(ngModel)]="address1" [readonly]="!isOwner"></ion-input></ion-item>
+          <ion-item><ion-label position="floating">Address Line 2</ion-label><ion-input [(ngModel)]="address2" [readonly]="!isOwner"></ion-input></ion-item>
+          <ion-row>
+            <ion-col size="6" size-md="3">
+              <ion-item><ion-label position="floating">City</ion-label><ion-input [(ngModel)]="city" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+            <ion-col size="6" size-md="3">
+              <ion-item><ion-label position="floating">State</ion-label><ion-input [(ngModel)]="state" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+            <ion-col size="6" size-md="3">
+              <ion-item><ion-label position="floating">Postal Code</ion-label><ion-input [(ngModel)]="postalCode" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+            <ion-col size="6" size-md="3">
+              <ion-item><ion-label position="floating">Country</ion-label><ion-input [(ngModel)]="country" [readonly]="!isOwner"></ion-input></ion-item>
+            </ion-col>
+          </ion-row>
+
+          <ion-item lines="none" class="ion-margin-top">
+            <ion-label>Owner Email</ion-label>
+            <ion-note slot="end">{{ ownerEmail }}</ion-note>
+          </ion-item>
+
+          <ion-button *ngIf="isOwner" expand="block" class="ion-margin-top" (click)="saveOrgProfile()">
+            <ion-icon name="checkmark" slot="start"></ion-icon> Save Changes
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Danger Zone -->
+      <ion-card *ngIf="isOwner" color="danger">
+        <ion-card-header><ion-card-title>Danger Zone</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <p>Type the organization name to confirm deletion:</p>
+          <ion-item color="light">
+            <ion-input [(ngModel)]="deleteConfirmName" [placeholder]="orgName"></ion-input>
+          </ion-item>
+          <ion-button color="light" class="ion-margin-top" [disabled]="deleteConfirmName !== orgName" (click)="deleteOrganization()">
+            Delete Organization
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+
+    <!-- DOCUMENTS TAB -->
+    <ng-container *ngIf="activeTab === 'documents'">
+      <ion-card>
+        <ion-card-header>
+          <ion-row class="ion-align-items-center">
+            <ion-col><ion-card-title>Invoice Types</ion-card-title></ion-col>
+            <ion-col size="auto">
+              <ion-button *ngIf="isOwner" fill="outline" size="small" (click)="openDocForm('invoice')">
+                <ion-icon name="add" slot="start"></ion-icon> Add
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list *ngIf="invoiceTypes.length > 0">
+            <ion-item *ngFor="let t of invoiceTypes">
+              <ion-label>
+                <h2>{{ t.name }}</h2>
+                <p>Prefix: {{ t.prefix }}</p>
+              </ion-label>
+              <ion-button *ngIf="isOwner" fill="clear" color="danger" slot="end" (click)="deleteDocType(t.id!)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-item>
+          </ion-list>
+          <ion-text *ngIf="invoiceTypes.length === 0" color="medium">
+            <p class="ion-text-center">No invoice types configured</p>
+          </ion-text>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card>
+        <ion-card-header>
+          <ion-row class="ion-align-items-center">
+            <ion-col><ion-card-title>Purchase Order Types</ion-card-title></ion-col>
+            <ion-col size="auto">
+              <ion-button *ngIf="isOwner" fill="outline" size="small" (click)="openDocForm('purchase_order')">
+                <ion-icon name="add" slot="start"></ion-icon> Add
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-list *ngIf="poTypes.length > 0">
+            <ion-item *ngFor="let t of poTypes">
+              <ion-label>
+                <h2>{{ t.name }}</h2>
+                <p>Prefix: {{ t.prefix }}</p>
+              </ion-label>
+              <ion-button *ngIf="isOwner" fill="clear" color="danger" slot="end" (click)="deleteDocType(t.id!)">
+                <ion-icon name="trash-outline"></ion-icon>
+              </ion-button>
+            </ion-item>
+          </ion-list>
+          <ion-text *ngIf="poTypes.length === 0" color="medium">
+            <p class="ion-text-center">No PO types configured</p>
+          </ion-text>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Doc type form modal -->
+      <ion-modal [isOpen]="showDocForm" (didDismiss)="showDocForm = false" [initialBreakpoint]="0.45" [breakpoints]="[0, 0.45]">
+        <ng-template>
+          <ion-content class="ion-padding">
+            <h3 class="ion-no-margin ion-margin-bottom">{{ editingDocId ? 'Edit' : 'Add' }} Document Type</h3>
+            <ion-item>
+              <ion-label position="floating">Type Name *</ion-label>
+              <ion-input [(ngModel)]="docFormName"></ion-input>
+            </ion-item>
+            <ion-item>
+              <ion-label position="floating">Prefix *</ion-label>
+              <ion-input [(ngModel)]="docFormPrefix" maxlength="3" (ionInput)="docFormPrefix = docFormPrefix.toUpperCase()"></ion-input>
+            </ion-item>
+            <ion-item *ngIf="!editingDocId">
+              <ion-label position="floating">Start Number</ion-label>
+              <ion-input type="number" [(ngModel)]="docFormStart"></ion-input>
+            </ion-item>
+            <p *ngIf="docFormPrefix" class="ion-padding-start">
+              <ion-text color="medium">First document: {{ docFormPrefix }}-{{ (docFormStart || 1).toString().padStart(3, '0') }}</ion-text>
+            </p>
+            <ion-row class="ion-margin-top">
+              <ion-col><ion-button expand="block" fill="outline" (click)="showDocForm = false">Cancel</ion-button></ion-col>
+              <ion-col><ion-button expand="block" (click)="saveDocType()">Save</ion-button></ion-col>
+            </ion-row>
+          </ion-content>
+        </ng-template>
+      </ion-modal>
+    </ng-container>
+
+    <!-- MEMBERS TAB -->
+    <ng-container *ngIf="activeTab === 'members'">
+      <!-- Invite Form -->
+      <ion-card *ngIf="isOwner">
+        <ion-card-header><ion-card-title>Invite Team Member</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <ion-row>
+            <ion-col size="12" size-md="6">
+              <ion-item>
+                <ion-label position="floating">Email</ion-label>
+                <ion-input type="email" [(ngModel)]="inviteEmail" placeholder="Email address"></ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="12" size-md="4">
+              <ion-item>
+                <ion-label>Role</ion-label>
+                <ion-select [(ngModel)]="inviteRole" interface="popover">
+                  <ion-select-option value="member">Member</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+            <ion-col size="12" size-md="2" class="ion-align-self-center">
+              <ion-button expand="block" (click)="inviteMember()">
+                <ion-icon name="person-add-outline" slot="start"></ion-icon> Invite
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Team Members -->
+      <ion-card>
+        <ion-card-header><ion-card-title>Team Members</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item *ngFor="let m of members">
+              <ion-icon name="person-outline" slot="start" [color]="m.membership.role === 'owner' ? 'success' : 'medium'"></ion-icon>
+              <ion-label>
+                <h2>{{ m.user?.name || 'Unknown' }}</h2>
+                <p>{{ m.user?.email }}</p>
+              </ion-label>
+              <ion-badge [color]="m.membership.role === 'owner' ? 'success' : 'medium'" slot="end">{{ m.membership.role }}</ion-badge>
+              <ion-button *ngIf="isOwner && m.membership.role !== 'owner'" fill="clear" color="danger" slot="end" (click)="removeMember(m.membership.id!)">
+                <ion-icon name="close-outline"></ion-icon>
+              </ion-button>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Pending Invitations -->
+      <ion-card *ngIf="invitations.length > 0">
+        <ion-card-header><ion-card-title>Pending Invitations</ion-card-title></ion-card-header>
+        <ion-card-content>
+          <ion-list>
+            <ion-item *ngFor="let inv of invitations">
+              <ion-label>
+                <h3>{{ inv.email }}</h3>
+                <p>Awaiting sign-up</p>
+              </ion-label>
+              <ion-button *ngIf="isOwner" fill="clear" color="danger" slot="end" (click)="cancelInvitation(inv.id!)">Cancel</ion-button>
+            </ion-item>
+          </ion-list>
+        </ion-card-content>
+      </ion-card>
+
+      <div *ngIf="invitations.length === 0" class="ion-text-center ion-padding">
+        <ion-text color="medium">No pending invitations.</ion-text>
+      </div>
+    </ng-container>
+
+  </ion-grid>
+</ion-content>

@@ -1,0 +1,239 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-button (click)="goBack()"><ion-icon name="arrow-back"></ion-icon></ion-button></ion-buttons>
+    <ion-title>{{ isEditing ? 'Edit' : 'Create' }} Purchase Order</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-grid fixed>
+    <ion-row class="ion-justify-content-center">
+      <ion-col size="12" size-lg="8">
+
+        <!-- Step indicator -->
+        <ion-segment [value]="step.toString()" disabled>
+          <ion-segment-button value="1"><ion-label>1. Details & Items</ion-label></ion-segment-button>
+          <ion-segment-button value="2"><ion-label>2. Review</ion-label></ion-segment-button>
+        </ion-segment>
+
+        <!-- STEP 1 -->
+        <ng-container *ngIf="step === 1">
+          <ion-card>
+            <ion-card-header><ion-card-title>PO Details</ion-card-title></ion-card-header>
+            <ion-card-content>
+              <ion-row>
+                <ion-col size="12" size-md="6">
+                  <ion-item>
+                    <ion-label position="floating">PO Type *</ion-label>
+                    <ion-select [(ngModel)]="selectedTypeId" interface="popover">
+                      <ion-select-option *ngFor="let t of poTypes" [value]="t.id">{{ t.name }}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                </ion-col>
+                <ion-col size="12" size-md="3">
+                  <ion-item>
+                    <ion-label position="floating">PO Date *</ion-label>
+                    <ion-input type="date" [(ngModel)]="poDate"></ion-input>
+                  </ion-item>
+                </ion-col>
+                <ion-col size="12" size-md="3">
+                  <ion-item>
+                    <ion-label position="floating">Expected Delivery</ion-label>
+                    <ion-input type="date" [(ngModel)]="expectedDeliveryDate"></ion-input>
+                  </ion-item>
+                </ion-col>
+              </ion-row>
+              <ion-row>
+                <ion-col size="12" size-md="6">
+                  <ion-item [color]="errors['vendor'] ? 'danger' : ''">
+                    <ion-label position="floating">Vendor *</ion-label>
+                    <ion-select [(ngModel)]="selectedVendorId" (ionChange)="onVendorChange()" interface="popover">
+                      <ion-select-option *ngFor="let v of vendors" [value]="v.id">{{ v.name }}</ion-select-option>
+                    </ion-select>
+                  </ion-item>
+                </ion-col>
+                <ion-col size="12" size-md="3">
+                  <ion-item>
+                    <ion-label position="floating">Vendor GSTIN</ion-label>
+                    <ion-input [(ngModel)]="vendorGstin"></ion-input>
+                  </ion-item>
+                </ion-col>
+                <ion-col size="12" size-md="3">
+                  <ion-item>
+                    <ion-label position="floating">Place of Supply</ion-label>
+                    <ion-input [(ngModel)]="placeOfSupply"></ion-input>
+                  </ion-item>
+                </ion-col>
+              </ion-row>
+              <ion-item>
+                <ion-label position="floating">Billing Address</ion-label>
+                <ion-textarea [(ngModel)]="billingAddress" rows="2"></ion-textarea>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Shipping Address</ion-label>
+                <ion-textarea [(ngModel)]="shippingAddress" rows="2"></ion-textarea>
+              </ion-item>
+              <ion-item>
+                <ion-label position="floating">Payment Terms</ion-label>
+                <ion-input [(ngModel)]="paymentTerms"></ion-input>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+
+          <!-- Line Items -->
+          <ion-card>
+            <ion-card-header>
+              <ion-row class="ion-align-items-center">
+                <ion-col><ion-card-title>Line Items</ion-card-title></ion-col>
+                <ion-col size="auto">
+                  <ion-button fill="outline" size="small" (click)="addLineItem()">
+                    <ion-icon name="add" slot="start"></ion-icon> Add Item
+                  </ion-button>
+                </ion-col>
+              </ion-row>
+            </ion-card-header>
+            <ion-card-content>
+              <div *ngIf="lineItems.length === 0" class="ion-text-center ion-padding">
+                <ion-text color="medium">No line items added yet. Click "Add Item" to begin.</ion-text>
+              </div>
+
+              <ion-card *ngFor="let item of lineItems; let i = index">
+                <ion-card-header>
+                  <ion-row class="ion-align-items-center">
+                    <ion-col><ion-card-subtitle>Item {{ i + 1 }}</ion-card-subtitle></ion-col>
+                    <ion-col size="auto">
+                      <ion-button fill="clear" color="danger" size="small" (click)="removeLineItem(i)">
+                        <ion-icon name="trash-outline"></ion-icon>
+                      </ion-button>
+                    </ion-col>
+                  </ion-row>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-row>
+                    <ion-col size="12" size-md="6">
+                      <ion-item>
+                        <ion-label position="floating">Item Name *</ion-label>
+                        <ion-input [(ngModel)]="item.product_service_name" (ionInput)="onItemNameInput(item, i)"></ion-input>
+                      </ion-item>
+                      <!-- Suggestions -->
+                      <ion-list *ngIf="activeSuggestionIndex === i && suggestions.length > 0">
+                        <ion-item *ngFor="let s of suggestions" button (click)="selectSuggestion(item, s)" detail="false">
+                          <ion-label>{{ s.product_service_name }}</ion-label>
+                          <ion-note slot="end">{{ s.rate | inr }}</ion-note>
+                        </ion-item>
+                      </ion-list>
+                    </ion-col>
+                    <ion-col size="6" size-md="3">
+                      <ion-item><ion-label position="floating">HSN/SAC</ion-label><ion-input [(ngModel)]="item.hsn_sac_code"></ion-input></ion-item>
+                    </ion-col>
+                    <ion-col size="6" size-md="3">
+                      <ion-item><ion-label position="floating">Unit</ion-label><ion-input [(ngModel)]="item.unit"></ion-input></ion-item>
+                    </ion-col>
+                  </ion-row>
+                  <ion-row>
+                    <ion-col size="4" size-md="3">
+                      <ion-item><ion-label position="floating">Qty</ion-label><ion-input type="number" [(ngModel)]="item.quantity" (ionInput)="calculateLineItem(item)" min="1"></ion-input></ion-item>
+                    </ion-col>
+                    <ion-col size="4" size-md="3">
+                      <ion-item><ion-label position="floating">Rate</ion-label><ion-input type="number" [(ngModel)]="item.rate" (ionInput)="calculateLineItem(item)"></ion-input></ion-item>
+                    </ion-col>
+                    <ion-col size="4" size-md="3">
+                      <ion-item><ion-label position="floating">GST %</ion-label><ion-input type="number" [(ngModel)]="item.gst_rate" (ionInput)="recalculate()"></ion-input></ion-item>
+                    </ion-col>
+                    <ion-col size="12" size-md="3">
+                      <ion-item lines="none"><ion-label><strong>Amount: {{ item.amount | inr }}</strong></ion-label></ion-item>
+                    </ion-col>
+                  </ion-row>
+                </ion-card-content>
+              </ion-card>
+
+              <ion-item *ngIf="lineItems.length > 0" lines="none">
+                <ion-label class="ion-text-end"><strong>Subtotal: {{ subtotal | inr }}</strong></ion-label>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-button expand="block" class="ion-margin-top" (click)="goToReview()">
+            Review <ion-icon name="arrow-forward" slot="end"></ion-icon>
+          </ion-button>
+        </ng-container>
+
+        <!-- STEP 2: Review -->
+        <ng-container *ngIf="step === 2">
+          <ion-card>
+            <ion-card-header><ion-card-title>PO Summary</ion-card-title></ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                <ion-item>
+                  <ion-label>Date</ion-label>
+                  <ion-note slot="end">{{ poDate }}</ion-note>
+                </ion-item>
+                <ion-item *ngIf="expectedDeliveryDate">
+                  <ion-label>Expected Delivery</ion-label>
+                  <ion-note slot="end">{{ expectedDeliveryDate }}</ion-note>
+                </ion-item>
+                <ion-item *ngIf="paymentTerms" lines="none">
+                  <ion-label>Payment Terms</ion-label>
+                  <ion-note slot="end">{{ paymentTerms }}</ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header><ion-card-title>Items</ion-card-title></ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                <ion-item *ngFor="let item of lineItems">
+                  <ion-label>
+                    <h3>{{ item.product_service_name }}</h3>
+                    <p>{{ item.quantity }} x {{ item.rate | inr }}</p>
+                  </ion-label>
+                  <ion-note slot="end">{{ item.amount | inr }}</ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-header><ion-card-title>Totals</ion-card-title></ion-card-header>
+            <ion-card-content>
+              <ion-list>
+                <ion-item>
+                  <ion-label>Subtotal</ion-label>
+                  <ion-note slot="end">{{ subtotal | inr }}</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>CGST</ion-label>
+                  <ion-note slot="end">{{ cgst | inr }}</ion-note>
+                </ion-item>
+                <ion-item>
+                  <ion-label>SGST</ion-label>
+                  <ion-note slot="end">{{ sgst | inr }}</ion-note>
+                </ion-item>
+                <ion-item lines="none">
+                  <ion-label><strong>Grand Total</strong></ion-label>
+                  <ion-note slot="end"><strong>{{ grandTotal | inr }}</strong></ion-note>
+                </ion-item>
+              </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card>
+            <ion-card-content>
+              <ion-item>
+                <ion-label position="floating">Notes</ion-label>
+                <ion-textarea [(ngModel)]="notes" rows="3" placeholder="Any notes..."></ion-textarea>
+              </ion-item>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-button expand="block" class="ion-margin-top" (click)="savePO()">
+            <ion-icon name="checkmark" slot="start"></ion-icon> Save Purchase Order
+          </ion-button>
+        </ng-container>
+
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

@@ -1,0 +1,112 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Purchase Orders</ion-title>
+  </ion-toolbar>
+  <ion-toolbar class="search-toolbar">
+    <ion-searchbar [(ngModel)]="searchTerm" (ionInput)="filterPOs()" placeholder="Search by PO #, vendor..."></ion-searchbar>
+    <ion-buttons slot="end">
+      <ion-button fill="outline" color="primary" shape="round" (click)="createPO()">
+        <ion-icon name="add" slot="start"></ion-icon>
+        New PO
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Empty state -->
+  <div *ngIf="filteredPOs.length === 0" class="empty-state">
+    <ion-icon name="clipboard-outline" class="empty-icon"></ion-icon>
+    <h2>No purchase orders found</h2>
+    <p>Create your first purchase order to get started.</p>
+    <ion-button fill="outline" color="primary" shape="round" (click)="createPO()">
+      <ion-icon name="add" slot="start"></ion-icon>
+      New PO
+    </ion-button>
+  </div>
+
+  <!-- PO table -->
+  <div *ngIf="filteredPOs.length > 0" class="list-container">
+    <div class="list-header">
+      <span class="col po-num">PO #</span>
+      <span class="col date">Date</span>
+      <span class="col vendor">Vendor</span>
+      <span class="col amount">Amount</span>
+      <span class="col status">Status</span>
+      <span class="col actions">Actions</span>
+    </div>
+    <div class="list-row" *ngFor="let po of filteredPOs">
+      <span class="col po-num">{{ po.po_number }}</span>
+      <span class="col date">{{ po.po_date }}</span>
+      <span class="col vendor">{{ po.vendor_name }}</span>
+      <span class="col amount">{{ po.total_amount | inr }}</span>
+      <span class="col status">
+        <ion-badge [color]="getStatusColor(po.status)" class="status-badge" (click)="openStatusEdit(po, $event)">
+          {{ formatStatus(po.status) }}
+        </ion-badge>
+      </span>
+      <span class="col actions">
+        <ion-button *ngIf="po.status === 'draft'" fill="clear" color="primary" size="small" (click)="editPO(po)">
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+        <ion-button fill="clear" color="danger" size="small" (click)="confirmDelete(po)">
+          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </span>
+    </div>
+  </div>
+
+  <!-- Status Edit Popup -->
+  <div *ngIf="statusEdit" class="status-popup-backdrop" (click)="closeStatusEdit()"></div>
+  <div *ngIf="statusEdit" class="status-popup" [style.top.px]="statusEdit.y" [style.left.px]="statusEdit.x">
+    <div class="status-popup-header">
+      Update Status
+      <ion-button fill="clear" size="small" (click)="closeStatusEdit()">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+    <div class="status-popup-body">
+      <label>Status</label>
+      <select [(ngModel)]="statusEdit.newStatus">
+        <option value="draft">Draft</option>
+        <option value="sent">Sent</option>
+        <option value="acknowledged">Acknowledged</option>
+        <option value="partially_received">Partially Received</option>
+        <option value="received">Received</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      <label>Date (optional)</label>
+      <input type="date" [(ngModel)]="statusEdit.date">
+      <div class="status-popup-actions">
+        <ion-button fill="outline" color="primary" size="small" shape="round" (click)="saveStatusEdit()">
+          <ion-icon name="checkmark" slot="start"></ion-icon>
+          Save
+        </ion-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Dialog -->
+  <div *ngIf="deleteTarget" class="confirm-backdrop" (click)="cancelDelete()"></div>
+  <div *ngIf="deleteTarget" class="confirm-dialog">
+    <div class="confirm-icon">
+      <ion-icon name="warning-outline" color="danger"></ion-icon>
+    </div>
+    <h3>Delete Purchase Order?</h3>
+    <p>Are you sure you want to delete PO <strong>{{ deleteTarget.po_number }}</strong> for <strong>{{ deleteTarget.vendor_name }}</strong>? This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <ion-button fill="outline" color="medium" size="small" shape="round" (click)="cancelDelete()">Cancel</ion-button>
+      <ion-button fill="outline" color="danger" size="small" shape="round" (click)="doDelete()">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Delete
+      </ion-button>
+    </div>
+  </div>
+
+</ion-content>
