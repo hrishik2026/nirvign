@@ -53,6 +53,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   guidedFlowService = inject(GuidedFlowService);
   guidedFlow: GuidedFlow | null = null;
   private readonly ADMIN_EMAILS = ['hrishikeshb@gmail.com', 'rohitbhagwat@gmail.com'];
+  isAppAdmin = this.ADMIN_EMAILS.includes(this.auth.currentUser?.email || '');
 
   menuItems = [
     { title: 'Dashboard', url: '/dashboard', icon: 'home-outline' },
@@ -75,11 +76,6 @@ export class DashboardPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    // Conditionally add App Admin menu item for admin users
-    if (this.ADMIN_EMAILS.includes(this.auth.currentUser?.email || '')) {
-      this.menuItems.push({ title: 'App Admin', url: '/app-admin', icon: 'shield-checkmark-outline' });
-    }
-
     const org$ = this.orgService.orgReady$;
 
     this.subs.push(

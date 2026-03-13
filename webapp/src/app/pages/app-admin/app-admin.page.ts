@@ -4,6 +4,7 @@ import { ToastController } from '@ionic/angular';
 import { Firestore, collectionData, collection, doc, docData, setDoc, updateDoc, arrayUnion, arrayRemove } from '@angular/fire/firestore';
 import { Subscription, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { OrgService } from '../../services/org.service';
 import { Organization } from '../../models/interfaces';
 
 @Component({
@@ -20,6 +21,8 @@ export class AppAdminPage implements OnInit, OnDestroy {
   allowedEmails: string[] = [];
   organizations: Organization[] = [];
   newEmail = '';
+
+  private orgService = inject(OrgService);
 
   constructor(
     private router: Router,
@@ -107,5 +110,7 @@ export class AppAdminPage implements OnInit, OnDestroy {
     }
   }
 
-  goBack() { this.router.navigate(['/dashboard']); }
+  goBack() {
+    this.router.navigate([this.orgService.currentOrg ? '/dashboard' : '/select-org']);
+  }
 }

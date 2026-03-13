@@ -52,6 +52,8 @@ export class SelectOrgPage implements OnInit, OnDestroy {
   inviteEmail = '';
   invitedMembers: { email: string; status: string }[] = [];
   loggingOut = false;
+  isAppAdmin = false;
+  private readonly APP_ADMIN_EMAILS = ['hrishikeshb@gmail.com', 'rohitbhagwat@gmail.com'];
   private createdOrgId = '';
 
   constructor(
@@ -75,6 +77,7 @@ export class SelectOrgPage implements OnInit, OnDestroy {
       ]).subscribe(([user, config]: [any, any]) => {
         const emails: string[] = config?.emails || [];
         this.canCreateOrg = emails.includes(user.email);
+        this.isAppAdmin = this.APP_ADMIN_EMAILS.includes(user.email);
       })
     );
 
@@ -256,6 +259,10 @@ export class SelectOrgPage implements OnInit, OnDestroy {
       this.orgService.setCurrentOrg(org);
     }
     this.router.navigate(['/organization']);
+  }
+
+  goToAdmin() {
+    this.router.navigate(['/app-admin']);
   }
 
   goBack() {
