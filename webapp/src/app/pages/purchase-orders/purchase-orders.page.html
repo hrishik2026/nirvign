@@ -20,11 +20,16 @@
 
 <ion-content class="ion-padding">
 
+  <div class="page-hint">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span>Your purchase orders. Create POs for vendors, track delivery status, and manage what you're buying.</span>
+  </div>
+
   <!-- Empty state -->
   <div *ngIf="filteredPOs.length === 0" class="empty-state">
     <ion-icon name="clipboard-outline" class="empty-icon"></ion-icon>
-    <h2>No purchase orders found</h2>
-    <p>Create your first purchase order to get started.</p>
+    <h2>No purchase orders yet</h2>
+    <p>Create your first PO — pick a vendor, add items, and send it off.</p>
     <ion-button fill="outline" color="primary" shape="round" (click)="createPO()">
       <ion-icon name="add" slot="start"></ion-icon>
       New PO

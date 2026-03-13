@@ -85,9 +85,10 @@ export interface Vendor {
 
 export interface PricingVariant {
   label: string;
-  rate: number;
   unit: string;
-  quantity: number;
+  rate: number;
+  gst_rate: number;
+  quantity?: number;
 }
 
 export interface Product {
@@ -97,12 +98,7 @@ export interface Product {
   description?: string;
   classification: 'product' | 'service';
   hsn_sac_code?: string;
-  unit: string;
-  default_rate?: number;
-  gst_rate?: number;
-  category?: string;
-  notes?: string;
-  pricing_variants?: PricingVariant[];
+  pricing_variants: PricingVariant[];
 }
 
 export interface LineItem {

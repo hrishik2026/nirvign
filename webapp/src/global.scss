@@ -49,3 +49,20 @@ ion-item:not(.item-has-focus):not(.item-has-value) ion-textarea {
   color: var(--ion-color-primary);
   font-weight: 700;
 }
+
+/* Page description hint shown below header */
+.page-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 4px 12px;
+  font-size: 0.85em;
+  color: var(--ion-color-medium);
+  line-height: 1.45;
+
+  ion-icon {
+    margin-top: 2px;
+    font-size: 1.1em;
+    flex-shrink: 0;
+  }
+}

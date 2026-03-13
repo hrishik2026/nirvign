@@ -20,6 +20,11 @@
 
 <ion-content class="ion-padding">
 
+  <div class="page-hint">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span>Products and services you sell. Set default rates, GST, and units per pricing variant — you can still override them per customer when creating an invoice.</span>
+  </div>
+
   <!-- Add / Edit Form -->
   <ion-card *ngIf="showForm" class="form-card">
     <ion-card-header>
@@ -36,7 +41,7 @@
           <ion-col size="12" size-md="6">
             <ion-item><ion-input label="Name *" labelPlacement="stacked" [(ngModel)]="name" placeholder="Product or service name"></ion-input></ion-item>
           </ion-col>
-          <ion-col size="12" size-md="6">
+          <ion-col size="12" size-md="3">
             <ion-item>
               <ion-select label="Classification *" labelPlacement="stacked" [(ngModel)]="classification" interface="popover">
                 <ion-select-option value="product">Product</ion-select-option>
@@ -44,25 +49,8 @@
               </ion-select>
             </ion-item>
           </ion-col>
-        </ion-row>
-        <ion-row>
-          <ion-col size="12" size-md="4">
+          <ion-col size="12" size-md="3">
             <ion-item><ion-input label="HSN/SAC Code" labelPlacement="stacked" [(ngModel)]="hsnSacCode" placeholder="e.g. 8471"></ion-input></ion-item>
-          </ion-col>
-          <ion-col size="12" size-md="4">
-            <ion-item>
-              <ion-select label="Unit *" labelPlacement="stacked" [(ngModel)]="unit" interface="popover">
-                <ng-container *ngFor="let group of unitOptions">
-                  <ion-select-option *ngFor="let u of group.options" [value]="u">{{ u }}</ion-select-option>
-                </ng-container>
-              </ion-select>
-            </ion-item>
-          </ion-col>
-          <ion-col size="6" size-md="2">
-            <ion-item><ion-input label="Rate" labelPlacement="stacked" type="number" [(ngModel)]="defaultRate" placeholder="0"></ion-input></ion-item>
-          </ion-col>
-          <ion-col size="6" size-md="2">
-            <ion-item><ion-input label="GST %" labelPlacement="stacked" type="number" [(ngModel)]="gstRate" placeholder="18"></ion-input></ion-item>
           </ion-col>
         </ion-row>
         <ion-row>
@@ -74,34 +62,34 @@
 
       <!-- Pricing Variants -->
       <div class="variants-section">
-        <h3>Pricing Variants</h3>
+        <div class="variants-section-header">
+          <h3>Pricing Variants</h3>
+          <span class="variants-hint-text">Each variant can have its own unit, rate, and GST%</span>
+        </div>
         <div *ngIf="variants.length > 0" class="variants-table">
           <div class="variants-header">
             <span class="vcol label">Label *</span>
+            <span class="vcol unit">Unit *</span>
             <span class="vcol rate">Rate *</span>
-            <span class="vcol unit">Unit</span>
-            <span class="vcol qty">Qty</span>
+            <span class="vcol gst">GST %</span>
             <span class="vcol remove"></span>
           </div>
           <div class="variants-row" *ngFor="let v of variants; let i = index">
             <span class="vcol label">
-              <input type="text" [(ngModel)]="v.label" placeholder="e.g. Monthly">
-            </span>
-            <span class="vcol rate">
-              <input type="number" [(ngModel)]="v.rate" placeholder="0">
+              <input type="text" [(ngModel)]="v.label" placeholder="e.g. 5 kg pack">
             </span>
             <span class="vcol unit">
               <select [(ngModel)]="v.unit">
                 <ng-container *ngFor="let group of unitOptions">
                   <option *ngFor="let u of group.options" [value]="u">{{ u }}</option>
                 </ng-container>
-                <option value="monthly">monthly</option>
-                <option value="annual">annual</option>
-                <option value="lumpsum">lumpsum</option>
               </select>
             </span>
-            <span class="vcol qty">
-              <input type="number" [(ngModel)]="v.quantity" placeholder="0">
+            <span class="vcol rate">
+              <input type="number" [(ngModel)]="v.rate" placeholder="0">
+            </span>
+            <span class="vcol gst">
+              <input type="number" [(ngModel)]="v.gst_rate" placeholder="18">
             </span>
             <span class="vcol remove">
               <ion-button fill="clear" color="danger" size="small" (click)="removeVariant(i)">
@@ -109,6 +97,9 @@
               </ion-button>
             </span>
           </div>
+        </div>
+        <div *ngIf="variants.length === 0" class="variants-empty">
+          Add at least one pricing variant to define how this item is sold.
         </div>
         <ion-button fill="clear" color="primary" size="small" (click)="addVariant()">
           <ion-icon name="add" slot="start"></ion-icon> Add Variant
@@ -128,8 +119,8 @@
   <!-- Empty state -->
   <div *ngIf="filteredProducts.length === 0 && !showForm" class="empty-state">
     <ion-icon name="pricetag-outline" class="empty-icon"></ion-icon>
-    <h2>No products or services found</h2>
-    <p>Add your first product or service to get started.</p>
+    <h2>No products or services yet</h2>
+    <p>Add your first product or service to start building invoices.</p>
     <ion-button fill="outline" color="primary" shape="round" (click)="toggleForm()">
       <ion-icon name="add" slot="start"></ion-icon>
       Add Product
@@ -142,9 +133,7 @@
       <span class="col pname">Name</span>
       <span class="col ptype">Type</span>
       <span class="col hsn">HSN/SAC</span>
-      <span class="col rate">Rate</span>
-      <span class="col gst">GST %</span>
-      <span class="col variants-col">Variants</span>
+      <span class="col pricing">Pricing</span>
       <span class="col actions">Actions</span>
     </div>
     <div class="list-row" *ngFor="let p of filteredProducts">
@@ -155,13 +144,12 @@
         </ion-badge>
       </span>
       <span class="col hsn">{{ p.hsn_sac_code || '—' }}</span>
-      <span class="col rate">{{ p.default_rate ? (p.default_rate | inr) : '—' }}</span>
-      <span class="col gst">{{ p.gst_rate != null ? p.gst_rate + '%' : '—' }}</span>
-      <span class="col variants-col">
-        <span *ngIf="p.pricing_variants?.length" class="variants-hint">
-          {{ p.pricing_variants!.length }} variant{{ p.pricing_variants!.length > 1 ? 's' : '' }}
-        </span>
-        <span *ngIf="!p.pricing_variants?.length">—</span>
+      <span class="col pricing">
+        <div class="variant-chips">
+          <span class="variant-chip" *ngFor="let v of p.pricing_variants">
+            {{ v.label }}: ₹{{ v.rate }}/{{ v.unit }} <span class="variant-gst">@ {{ v.gst_rate }}%</span>
+          </span>
+        </div>
       </span>
       <span class="col actions">
         <ion-button fill="clear" color="primary" size="small" (click)="editProduct(p)">

@@ -70,7 +70,7 @@
     <ion-grid fixed>
 
       <!-- Quick Actions -->
-      <ion-row>
+      <ion-row class="ion-align-items-center">
         <ion-col size="auto">
           <ion-button fill="outline" (click)="navigate('/create-invoice')">
             <ion-icon name="add" slot="start"></ion-icon> Create Invoice
@@ -79,6 +79,11 @@
         <ion-col size="auto">
           <ion-button fill="outline" (click)="navigate('/create-po')">
             <ion-icon name="add" slot="start"></ion-icon> Create Purchase Order
+          </ion-button>
+        </ion-col>
+        <ion-col class="ion-text-end">
+          <ion-button fill="clear" size="small" (click)="navigate('/help')">
+            <ion-icon name="help-circle-outline" slot="start"></ion-icon> Help
           </ion-button>
         </ion-col>
       </ion-row>

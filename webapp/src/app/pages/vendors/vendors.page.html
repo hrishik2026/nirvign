@@ -20,6 +20,11 @@
 
 <ion-content class="ion-padding">
 
+  <div class="page-hint">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span>Suppliers you buy from. Add their details here so you can quickly select them when creating purchase orders.</span>
+  </div>
+
   <!-- Add / Edit Form -->
   <ion-card *ngIf="showForm" class="form-card">
     <ion-card-header>
@@ -78,8 +83,8 @@
   <!-- Empty state -->
   <div *ngIf="filteredVendors.length === 0 && !showForm" class="empty-state">
     <ion-icon name="cart-outline" class="empty-icon"></ion-icon>
-    <h2>No vendors found</h2>
-    <p>Add your first vendor to get started.</p>
+    <h2>No vendors yet</h2>
+    <p>Add your first vendor so you can start creating purchase orders.</p>
     <ion-button fill="outline" color="primary" shape="round" (click)="openForm()">
       <ion-icon name="add" slot="start"></ion-icon>
       Add Vendor

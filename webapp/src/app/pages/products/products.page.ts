@@ -24,9 +24,6 @@ export class ProductsPage implements OnInit, OnDestroy {
   name = '';
   classification: 'product' | 'service' = 'product';
   hsnSacCode = '';
-  unit = 'pcs';
-  defaultRate: number | null = null;
-  gstRate: number | null = 18;
   description = '';
   variants: PricingVariant[] = [];
 
@@ -38,7 +35,8 @@ export class ProductsPage implements OnInit, OnDestroy {
     { label: 'Volume', options: ['ml', 'ltr', 'm3'] },
     { label: 'Length', options: ['cm', 'm', 'ft'] },
     { label: 'Area', options: ['sqft', 'sqm'] },
-    { label: 'Time', options: ['min', 'hrs', 'days'] }
+    { label: 'Time', options: ['min', 'hrs', 'days'] },
+    { label: 'Other', options: ['monthly', 'annual', 'lumpsum'] }
   ];
 
   constructor(
@@ -80,7 +78,7 @@ export class ProductsPage implements OnInit, OnDestroy {
   resetForm() {
     this.editingId = null;
     this.name = ''; this.classification = 'product'; this.hsnSacCode = '';
-    this.unit = 'pcs'; this.defaultRate = null; this.gstRate = 18; this.description = '';
+    this.description = '';
     this.variants = [];
   }
 
@@ -89,9 +87,6 @@ export class ProductsPage implements OnInit, OnDestroy {
     this.name = p.name;
     this.classification = this.mapClassification(p.classification);
     this.hsnSacCode = p.hsn_sac_code || '';
-    this.unit = p.unit || 'pcs';
-    this.defaultRate = p.default_rate || null;
-    this.gstRate = p.gst_rate ?? 18;
     this.description = p.description || '';
     this.variants = (p.pricing_variants || []).map(v => ({ ...v }));
     this.showForm = true;
@@ -110,17 +105,22 @@ export class ProductsPage implements OnInit, OnDestroy {
       toast.present();
       return;
     }
+
+    const validVariants = this.variants.filter(v => v.label && v.rate != null);
+    if (validVariants.length === 0) {
+      const toast = await this.toastCtrl.create({ message: 'Add at least one pricing variant', duration: 3000, color: 'danger' });
+      toast.present();
+      return;
+    }
+
     const org = this.orgService.currentOrg!;
     const data: any = {
       organization_id: org.id,
       name: this.name,
       classification: this.classification,
       hsn_sac_code: this.hsnSacCode || '',
-      unit: this.unit || 'pcs',
-      default_rate: this.defaultRate || 0,
-      gst_rate: this.gstRate || 0,
       description: this.description || '',
-      pricing_variants: this.variants.filter(v => v.label && v.rate)
+      pricing_variants: validVariants
     };
 
     try {
@@ -157,7 +157,7 @@ export class ProductsPage implements OnInit, OnDestroy {
   }
 
   addVariant() {
-    this.variants.push({ label: '', rate: 0, unit: this.unit || 'pcs', quantity: 0 });
+    this.variants.push({ label: '', unit: 'pcs', rate: 0, gst_rate: 18 });
   }
 
   removeVariant(index: number) {

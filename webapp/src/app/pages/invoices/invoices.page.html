@@ -20,11 +20,16 @@
 
 <ion-content class="ion-padding">
 
+  <div class="page-hint">
+    <ion-icon name="information-circle-outline"></ion-icon>
+    <span>Your sales invoices. Create GST-compliant invoices, track payment status, and keep a record of all billing to your customers.</span>
+  </div>
+
   <!-- Empty state -->
   <div *ngIf="filteredInvoices.length === 0" class="empty-state">
     <ion-icon name="document-text-outline" class="empty-icon"></ion-icon>
-    <h2>No invoices found</h2>
-    <p>Create your first invoice to get started.</p>
+    <h2>No invoices yet</h2>
+    <p>Create your first invoice — pick a customer, add items, and you're done.</p>
     <ion-button fill="outline" color="primary" shape="round" (click)="createInvoice()">
       <ion-icon name="add" slot="start"></ion-icon>
       Create Invoice

@@ -142,18 +142,13 @@ export class CreateInvoicePage implements OnInit, OnDestroy {
     if (product) {
       item.product_service_name = product.name;
       item.hsn_sac_code = product.hsn_sac_code || '';
-      item.gst_rate = product.gst_rate || 0;
 
-      // If product has variants, auto-select the first one
       const variants = product.pricing_variants || [];
       if (variants.length > 0) {
         item.selected_variant = variants[0].label;
         item.rate = variants[0].rate;
-        item.unit = variants[0].unit || product.unit;
-      } else {
-        item.selected_variant = '';
-        item.rate = product.default_rate || 0;
-        item.unit = product.unit;
+        item.unit = variants[0].unit;
+        item.gst_rate = variants[0].gst_rate;
       }
       this.calculateLineItem(item);
     }
@@ -170,7 +165,8 @@ export class CreateInvoicePage implements OnInit, OnDestroy {
     const selected = variants.find(v => v.label === item.selected_variant);
     if (selected) {
       item.rate = selected.rate;
-      item.unit = selected.unit || item.unit;
+      item.unit = selected.unit;
+      item.gst_rate = selected.gst_rate;
       this.calculateLineItem(item);
     }
   }
