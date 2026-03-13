@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
+import { Auth } from '@angular/fire/auth';
 import { Subscription } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
@@ -48,8 +49,10 @@ export class DashboardPage implements OnInit, OnDestroy {
   recentActivity: any[] = [];
 
   loggingOut = false;
+  private auth = inject(Auth);
   guidedFlowService = inject(GuidedFlowService);
   guidedFlow: GuidedFlow | null = null;
+  private readonly ADMIN_EMAILS = ['hrishikeshb@gmail.com', 'rohitbhagwat@gmail.com'];
 
   menuItems = [
     { title: 'Dashboard', url: '/dashboard', icon: 'home-outline' },
@@ -72,6 +75,11 @@ export class DashboardPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // Conditionally add App Admin menu item for admin users
+    if (this.ADMIN_EMAILS.includes(this.auth.currentUser?.email || '')) {
+      this.menuItems.push({ title: 'App Admin', url: '/app-admin', icon: 'shield-checkmark-outline' });
+    }
+
     const org$ = this.orgService.orgReady$;
 
     this.subs.push(

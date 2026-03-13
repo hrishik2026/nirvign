@@ -1,0 +1,23 @@
+.org-card {
+  .org-name {
+    font-weight: 600;
+    font-size: 1.05em;
+    margin: 0 0 4px;
+  }
+
+  .org-owner {
+    color: var(--ion-color-medium);
+    font-size: 0.9em;
+    margin: 0;
+  }
+
+  .org-meta {
+    color: var(--ion-color-medium);
+    font-size: 0.8em;
+    margin: 4px 0 0;
+  }
+
+  .status-select {
+    min-width: 120px;
+  }
+}

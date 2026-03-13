@@ -1,11 +1,12 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastController, LoadingController } from '@ionic/angular';
+import { Firestore, doc, docData } from '@angular/fire/firestore';
 import { AuthService } from '../../services/auth.service';
 import { OrgService } from '../../services/org.service';
 import { Organization, Membership } from '../../models/interfaces';
-import { Subscription, firstValueFrom, combineLatest } from 'rxjs';
-import { switchMap, map, filter } from 'rxjs/operators';
+import { Subscription, firstValueFrom, combineLatest, of } from 'rxjs';
+import { switchMap, map, filter, catchError } from 'rxjs/operators';
 import { ParsedAddress } from '../../shared/directives/places-autocomplete.directive';
 import { isValidEmail, isValidIndianPhone, formatIndianPhone } from '../../shared/validators';
 
@@ -16,9 +17,11 @@ import { isValidEmail, isValidIndianPhone, formatIndianPhone } from '../../share
   standalone: false
 })
 export class SelectOrgPage implements OnInit, OnDestroy {
+  private firestore = inject(Firestore);
   orgs: { membership: Membership; org?: Organization }[] = [];
   showCreateOrg = false;
   isSwitchMode = false;
+  canCreateOrg = false;
   private currentUserId = '';
   private subs: Subscription[] = [];
   private autoSelectDone = false;
@@ -62,6 +65,18 @@ export class SelectOrgPage implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.isSwitchMode = this.route.snapshot.queryParamMap.get('switch') === '1';
+
+    // Check if user is allowed to create orgs
+    const allowedDoc = doc(this.firestore, 'app_config', 'allowed_users');
+    this.subs.push(
+      combineLatest([
+        this.authService.user$.pipe(filter(u => !!u)),
+        docData(allowedDoc).pipe(catchError(() => of({ emails: [] })))
+      ]).subscribe(([user, config]: [any, any]) => {
+        const emails: string[] = config?.emails || [];
+        this.canCreateOrg = emails.includes(user.email);
+      })
+    );
 
     // Real-time org list: user$ -> memberships -> org details (all reactive)
     this.subs.push(

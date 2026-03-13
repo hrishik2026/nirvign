@@ -52,10 +52,13 @@
             <p><ion-text color="medium">You don't belong to any organization yet.</ion-text></p>
           </div>
 
-          <ion-button expand="block" fill="outline" (click)="startCreateOrg()" class="ion-margin-top">
+          <ion-button *ngIf="canCreateOrg" expand="block" fill="outline" (click)="startCreateOrg()" class="ion-margin-top">
             <ion-icon name="add-circle-outline" slot="start"></ion-icon>
             Create New Organization
           </ion-button>
+          <p *ngIf="!canCreateOrg && !loading" class="ion-text-center ion-margin-top">
+            <ion-text color="medium">Contact your administrator to get access to create organizations.</ion-text>
+          </p>
         </ion-col>
       </ion-row>
     </ng-container>

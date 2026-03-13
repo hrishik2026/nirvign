@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
-import { authGuard, noAuthGuard, orgSelectionGuard } from './guards/auth.guard';
+import { authGuard, noAuthGuard, orgSelectionGuard, appAdminGuard } from './guards/auth.guard';
 
 const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
@@ -78,6 +78,11 @@ const routes: Routes = [
     path: 'help',
     loadChildren: () => import('./pages/help/help.module').then(m => m.HelpPageModule),
     canActivate: [authGuard]
+  },
+  {
+    path: 'app-admin',
+    loadChildren: () => import('./pages/app-admin/app-admin.module').then(m => m.AppAdminPageModule),
+    canActivate: [appAdminGuard]
   },
 ];
 

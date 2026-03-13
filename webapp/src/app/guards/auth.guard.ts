@@ -51,6 +51,26 @@ export const noAuthGuard: CanActivateFn = () => {
   );
 };
 
+const APP_ADMIN_EMAILS = ['hrishikeshb@gmail.com', 'rohitbhagwat@gmail.com'];
+
+export const appAdminGuard: CanActivateFn = () => {
+  const auth = inject(Auth);
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  return authService.authReady$.pipe(
+    filter(ready => ready),
+    take(1),
+    map(() => {
+      if (!auth.currentUser || !APP_ADMIN_EMAILS.includes(auth.currentUser.email || '')) {
+        router.navigate(['/dashboard']);
+        return false;
+      }
+      return true;
+    })
+  );
+};
+
 export const orgSelectionGuard: CanActivateFn = () => {
   const auth = inject(Auth);
   const authService = inject(AuthService);
