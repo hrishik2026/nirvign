@@ -26,7 +26,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number">1</div>
-      <ion-card class="step-card" button (click)="navigate('/organization')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/organization', 'selling')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -48,7 +48,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number">2</div>
-      <ion-card class="step-card" button (click)="navigate('/organization')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/organization', 'selling')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -70,7 +70,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number">3</div>
-      <ion-card class="step-card" button (click)="navigate('/products')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/products', 'selling')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -92,7 +92,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number">4</div>
-      <ion-card class="step-card" button (click)="navigate('/customers')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/customers', 'selling')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -114,7 +114,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number">5</div>
-      <ion-card class="step-card" button (click)="navigate('/create-invoice')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/create-invoice', 'selling')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -169,7 +169,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number alt">1</div>
-      <ion-card class="step-card" button (click)="navigate('/organization')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/organization', 'purchasing')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -191,7 +191,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number alt">2</div>
-      <ion-card class="step-card" button (click)="navigate('/organization')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/organization', 'purchasing')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -213,7 +213,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number alt">3</div>
-      <ion-card class="step-card" button (click)="navigate('/products')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/products', 'purchasing')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -235,7 +235,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number alt">4</div>
-      <ion-card class="step-card" button (click)="navigate('/vendors')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/vendors', 'purchasing')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">
@@ -257,7 +257,7 @@
     <div class="flow-step">
       <div class="step-connector"></div>
       <div class="step-number alt">5</div>
-      <ion-card class="step-card" button (click)="navigate('/create-po')">
+      <ion-card class="step-card" button (click)="navigateWithFlow('/create-po', 'purchasing')">
         <ion-card-content>
           <ion-row class="ion-align-items-center">
             <ion-col size="auto">

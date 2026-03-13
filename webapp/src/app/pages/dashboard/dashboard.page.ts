@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
@@ -6,6 +6,7 @@ import { switchMap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { OrgService } from '../../services/org.service';
 import { DataService } from '../../services/data.service';
+import { GuidedFlowService, GuidedFlow } from '../../services/guided-flow.service';
 import { Invoice, PurchaseOrder } from '../../models/interfaces';
 
 @Component({
@@ -47,6 +48,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   recentActivity: any[] = [];
 
   loggingOut = false;
+  guidedFlowService = inject(GuidedFlowService);
+  guidedFlow: GuidedFlow | null = null;
 
   menuItems = [
     { title: 'Dashboard', url: '/dashboard', icon: 'home-outline' },
@@ -70,6 +73,16 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   ngOnInit() {
     const org$ = this.orgService.orgReady$;
+
+    this.subs.push(
+      this.guidedFlowService.guidedFlow$.subscribe(flow => {
+        const wasNull = this.guidedFlow === null;
+        this.guidedFlow = flow;
+        if (flow && wasNull) {
+          this.menuCtrl.open('sideMenu');
+        }
+      })
+    );
 
     this.subs.push(
       org$.subscribe(org => this.orgName = org.name)
@@ -211,6 +224,17 @@ export class DashboardPage implements OnInit, OnDestroy {
   navigate(url: string) {
     this.menuCtrl.close();
     this.router.navigate([url]);
+  }
+
+  navigateFlow(url: string) {
+    this.guidedFlowService.setActiveStep(url);
+    this.router.navigate([url]);
+    setTimeout(() => this.menuCtrl.open('sideMenu'), 300);
+  }
+
+  exitFlow() {
+    this.guidedFlowService.endFlow();
+    this.menuCtrl.close();
   }
 
   async switchOrg() {

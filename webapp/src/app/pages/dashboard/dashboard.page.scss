@@ -1,0 +1,92 @@
+.guided-flow-section {
+  margin: 10px 12px 14px;
+  background: var(--ion-color-light);
+  border-radius: 10px;
+  border: 1px solid var(--ion-color-light-shade);
+  padding: 10px 8px;
+  position: relative;
+
+  .guided-flow-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+    margin-bottom: 4px;
+
+    .guided-flow-badge {
+      font-size: 1em;
+      font-weight: 600;
+      color: var(--ion-text-color);
+    }
+
+    ion-button {
+      --padding-start: 4px;
+      --padding-end: 4px;
+      height: 24px;
+    }
+  }
+
+  .guided-flow-source {
+    font-size: 0.65em;
+    color: var(--ion-color-medium);
+    font-style: italic;
+    padding: 0 4px 6px;
+  }
+
+  .guided-flow-list {
+    background: transparent;
+    padding: 0;
+
+    ion-item {
+      --background: transparent;
+      --min-height: 38px;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      --inner-padding-end: 4px;
+      font-size: 0.9em;
+      border-radius: 8px;
+      margin-bottom: 2px;
+
+      .flow-step-number {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--ion-color-light-shade);
+        color: var(--ion-color-medium);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75em;
+        font-weight: 700;
+        margin-right: 4px;
+        flex-shrink: 0;
+      }
+
+      &.active-step {
+        --background: var(--ion-color-primary);
+        --color: var(--ion-color-primary-contrast);
+        font-weight: 600;
+
+        ion-icon {
+          color: var(--ion-color-primary-contrast);
+        }
+
+        .flow-step-number {
+          background: rgba(255, 255, 255, 0.3);
+          color: var(--ion-color-primary-contrast);
+        }
+      }
+    }
+  }
+
+  .guided-flow-dismiss {
+    text-align: center;
+    margin-top: 4px;
+
+    ion-button {
+      font-size: 0.8em;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+  }
+}
