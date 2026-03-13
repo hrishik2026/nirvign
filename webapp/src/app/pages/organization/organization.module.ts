@@ -4,9 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { OrganizationPage } from './organization.page';
+import { SharedModule } from '../../shared/shared.module';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild([{ path: '', component: OrganizationPage }])],
+  imports: [CommonModule, FormsModule, IonicModule, SharedModule, RouterModule.forChild([{ path: '', component: OrganizationPage }])],
   declarations: [OrganizationPage]
 })
 export class OrganizationPageModule {}

@@ -6,6 +6,8 @@ import { switchMap } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { OrgService } from '../../services/org.service';
 import { Organization, Membership, DocumentType, Invitation, User } from '../../models/interfaces';
+import { ParsedAddress } from '../../shared/directives/places-autocomplete.directive';
+import { isValidEmail, isValidIndianPhone, formatIndianPhone } from '../../shared/validators';
 
 @Component({
   selector: 'app-organization',
@@ -39,6 +41,7 @@ export class OrganizationPage implements OnInit, OnDestroy {
   // Documents tab
   invoiceTypes: DocumentType[] = [];
   poTypes: DocumentType[] = [];
+  get hasDocTypes(): boolean { return this.invoiceTypes.length > 0 || this.poTypes.length > 0; }
   showDocForm = false;
   docFormCategory: 'invoice' | 'purchase_order' = 'invoice';
   docFormName = '';
@@ -54,6 +57,9 @@ export class OrganizationPage implements OnInit, OnDestroy {
 
   // Delete org
   deleteConfirmName = '';
+
+  // Dirty tracking for org data
+  private savedSnapshot = '';
 
   constructor(
     private authService: AuthService,
@@ -92,11 +98,12 @@ export class OrganizationPage implements OnInit, OnDestroy {
       org$.pipe(
         switchMap(org => this.orgService.getMembers(org.id))
       ).subscribe(async memberships => {
-        this.members = [];
+        const result: { membership: Membership; user?: User }[] = [];
         for (const m of memberships) {
           const userData = await this.authService.getUser(m.user_id);
-          this.members.push({ membership: m, user: userData || undefined });
+          result.push({ membership: m, user: userData || undefined });
         }
+        this.members = result;
       })
     );
     this.subs.push(
@@ -115,7 +122,7 @@ export class OrganizationPage implements OnInit, OnDestroy {
     this.orgName = o.name;
     this.gstin = o.gstin || '';
     this.email = o.email || '';
-    this.phone = o.phone || '';
+    this.phone = o.phone || '+91 ';
     this.fax = o.fax || '';
     this.website = o.website || '';
     this.address1 = o.address_line1 || '';
@@ -127,6 +134,19 @@ export class OrganizationPage implements OnInit, OnDestroy {
     this.defaultCurrency = o.default_currency || 'INR';
     this.ownerEmail = o.owner_email || '';
     this.logoUrl = o.logo_url || '';
+    this.savedSnapshot = this.getOrgSnapshot();
+  }
+
+  private getOrgSnapshot(): string {
+    return JSON.stringify([
+      this.orgName, this.gstin, this.email, this.phone, this.fax, this.website,
+      this.address1, this.address2, this.city, this.state, this.postalCode,
+      this.country, this.defaultCurrency
+    ]);
+  }
+
+  get isOrgDirty(): boolean {
+    return this.savedSnapshot !== '' && this.savedSnapshot !== this.getOrgSnapshot();
   }
 
   private checkOwnership() {
@@ -137,7 +157,68 @@ export class OrganizationPage implements OnInit, OnDestroy {
     });
   }
 
+  async switchTab(tab: string) {
+    if (this.activeTab === 'org' && tab !== 'org' && this.isOrgDirty) {
+      const prevTab = this.activeTab;
+      const result = await this.confirmUnsavedChanges();
+      if (result === 'cancel') {
+        // Force segment back — briefly toggle to reset the visual state
+        this.activeTab = '';
+        setTimeout(() => this.activeTab = prevTab);
+        return;
+      }
+      if (result === 'save') await this.saveOrgProfile();
+      if (result === 'discard') this.loadOrgData();
+    }
+    this.activeTab = tab;
+  }
+
+  private confirmUnsavedChanges(): Promise<'save' | 'discard' | 'cancel'> {
+    return new Promise(async resolve => {
+      const alert = await this.alertCtrl.create({
+        header: 'Unsaved Changes',
+        message: 'You have unsaved changes. Do you want me to save changes before moving on?',
+        backdropDismiss: false,
+        cssClass: 'unsaved-changes-alert',
+        buttons: [
+          { text: 'Cancel', role: 'cancel', handler: () => resolve('cancel') },
+          { text: "Don't Save", handler: () => resolve('discard') },
+          { text: 'Yes, Save', cssClass: 'alert-button-primary', handler: () => resolve('save') }
+        ]
+      });
+      await alert.present();
+    });
+  }
+
+  onPlaceChanged(addr: ParsedAddress) {
+    if (addr.address_line1) this.address1 = addr.address_line1;
+    if (addr.address_line2) this.address2 = addr.address_line2;
+    if (addr.city) this.city = addr.city;
+    if (addr.state) this.state = addr.state;
+    if (addr.postal_code) this.postalCode = addr.postal_code;
+    if (addr.country) this.country = addr.country;
+  }
+
+  onPhoneInput() {
+    this.phone = formatIndianPhone(this.phone);
+  }
+
   async saveOrgProfile() {
+    if (!this.email || !this.phone || !this.address1) {
+      const toast = await this.toastCtrl.create({ message: 'Email, phone, and address are required', duration: 3000, color: 'danger' });
+      toast.present();
+      return;
+    }
+    if (!isValidEmail(this.email)) {
+      const toast = await this.toastCtrl.create({ message: 'Please enter a valid email address', duration: 3000, color: 'danger' });
+      toast.present();
+      return;
+    }
+    if (!isValidIndianPhone(this.phone)) {
+      const toast = await this.toastCtrl.create({ message: 'Please enter a valid Indian phone number (+91 XXXXX XXXXX)', duration: 3000, color: 'danger' });
+      toast.present();
+      return;
+    }
     try {
       await this.orgService.updateOrganization(this.org!.id, {
         name: this.orgName,
@@ -154,6 +235,7 @@ export class OrganizationPage implements OnInit, OnDestroy {
         country: this.country,
         default_currency: this.defaultCurrency
       });
+      this.savedSnapshot = this.getOrgSnapshot();
       const toast = await this.toastCtrl.create({ message: 'Changes saved', duration: 2000, color: 'success' });
       toast.present();
     } catch (err: any) {
@@ -252,5 +334,12 @@ export class OrganizationPage implements OnInit, OnDestroy {
     this.router.navigate(['/select-org']);
   }
 
-  goBack() { this.router.navigate(['/dashboard']); }
+  async goBack() {
+    if (this.isOrgDirty) {
+      const result = await this.confirmUnsavedChanges();
+      if (result === 'cancel') return;
+      if (result === 'save') await this.saveOrgProfile();
+    }
+    this.router.navigate(['/dashboard']);
+  }
 }

@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { ToastController, LoadingController } from '@ionic/angular';
 import { AuthService } from '../../services/auth.service';
 import { OrgService } from '../../services/org.service';
 import { Organization, Membership } from '../../models/interfaces';
-import { firstValueFrom } from 'rxjs';
+import { Subscription, firstValueFrom, combineLatest } from 'rxjs';
+import { switchMap, map, filter } from 'rxjs/operators';
+import { ParsedAddress } from '../../shared/directives/places-autocomplete.directive';
+import { isValidEmail, isValidIndianPhone, formatIndianPhone } from '../../shared/validators';
 
 @Component({
   selector: 'app-select-org',
@@ -12,17 +15,21 @@ import { firstValueFrom } from 'rxjs';
   styleUrls: ['./select-org.page.scss'],
   standalone: false
 })
-export class SelectOrgPage implements OnInit {
+export class SelectOrgPage implements OnInit, OnDestroy {
   orgs: { membership: Membership; org?: Organization }[] = [];
   showCreateOrg = false;
-  private isSwitchMode = false;
+  isSwitchMode = false;
+  private currentUserId = '';
+  private subs: Subscription[] = [];
+  private autoSelectDone = false;
+  loading = true;
 
-  // Create org wizard fields (same as register)
+  // Create org wizard fields
   orgStep = 1;
   orgName = '';
   orgGstin = '';
   orgEmail = '';
-  orgPhone = '';
+  orgPhone = '+91 ';
   orgWebsite = '';
   orgAddress1 = '';
   orgAddress2 = '';
@@ -41,6 +48,7 @@ export class SelectOrgPage implements OnInit {
   ];
   inviteEmail = '';
   invitedMembers: { email: string; status: string }[] = [];
+  loggingOut = false;
   private createdOrgId = '';
 
   constructor(
@@ -53,36 +61,68 @@ export class SelectOrgPage implements OnInit {
   ) {}
 
   async ngOnInit() {
-    // If user clicked "Switch Org", don't auto-select
     this.isSwitchMode = this.route.snapshot.queryParamMap.get('switch') === '1';
 
-    this.authService.user$.subscribe(async user => {
-      if (user) {
-        await this.loadOrgs(user.id);
-      }
-    });
+    // Real-time org list: user$ -> memberships -> org details (all reactive)
+    this.subs.push(
+      this.authService.user$.pipe(
+        filter(user => !!user),
+        switchMap(user => {
+          this.currentUserId = user!.id;
+          // Auto-accept invitations (fire-and-forget)
+          this.acceptPendingInvitations(user!.email, user!.id);
+          return this.orgService.getUserOrganizations(user!.id);
+        }),
+        switchMap(memberships => {
+          if (memberships.length === 0) return [[]];
+          // For each membership, get a live org observable
+          const orgStreams = memberships.map(m =>
+            this.orgService.getOrganization(m.organization_id).pipe(
+              map(org => ({ membership: m, org }))
+            )
+          );
+          return combineLatest(orgStreams);
+        })
+      ).subscribe(orgs => {
+        this.loading = false;
+        // Filter out deleted orgs entirely; show suspended as non-accessible
+        this.orgs = orgs.filter(o => o.org?.status !== 'deleted');
+        // Auto-select once if exactly one active org
+        if (!this.isSwitchMode && !this.autoSelectDone) {
+          const activeOrgs = this.orgs.filter(o => o.org?.status === 'active');
+          if (activeOrgs.length === 1 && activeOrgs[0].org) {
+            this.autoSelectDone = true;
+            this.selectOrg(activeOrgs[0].org);
+          }
+        }
+      })
+    );
   }
 
-  private async loadOrgs(userId: string) {
-    const memberships = await firstValueFrom(this.orgService.getUserOrganizations(userId));
-    this.orgs = [];
-    for (const m of memberships) {
-      const org = await firstValueFrom(this.orgService.getOrganization(m.organization_id));
-      this.orgs.push({ membership: m, org });
-    }
+  ngOnDestroy() {
+    this.subs.forEach(s => s.unsubscribe());
+  }
 
-    // Auto-select if exactly one active org, but NOT when user explicitly chose "Switch Org"
-    if (!this.isSwitchMode) {
-      const activeOrgs = this.orgs.filter(o => o.org?.status === 'active');
-      if (activeOrgs.length === 1 && activeOrgs[0].org) {
-        this.selectOrg(activeOrgs[0].org);
-      }
-    }
+  private async acceptPendingInvitations(email: string, userId: string) {
+    const invitations = await firstValueFrom(this.orgService.getPendingInvitations(email));
+    await Promise.all(invitations.map(inv => this.orgService.acceptInvitation(inv, userId)));
   }
 
   async selectOrg(org: Organization) {
+    if (org.status === 'suspended') {
+      const toast = await this.toastCtrl.create({ message: 'This organization has been suspended by the administrator', duration: 3000, position: 'top', color: 'warning' });
+      toast.present();
+      return;
+    }
     if (org.status !== 'active') {
       const toast = await this.toastCtrl.create({ message: 'This organization is not active', duration: 3000, position: 'top', color: 'danger' });
+      toast.present();
+      return;
+    }
+    // Verify membership before navigating
+    const membership = await firstValueFrom(this.orgService.getUserMembership(this.currentUserId, org.id));
+    if (!membership) {
+      const toast = await this.toastCtrl.create({ message: 'You no longer have access to this organization', duration: 3000, color: 'danger' });
       toast.present();
       return;
     }
@@ -94,7 +134,7 @@ export class SelectOrgPage implements OnInit {
     switch (status) {
       case 'active': return 'success';
       case 'suspended': return 'warning';
-      case 'rolled_off': return 'danger';
+      case 'deleted': return 'danger';
       default: return 'medium';
     }
   }
@@ -104,8 +144,35 @@ export class SelectOrgPage implements OnInit {
     this.orgStep = 1;
   }
 
+  onPlaceChanged(addr: ParsedAddress) {
+    if (addr.address_line1) this.orgAddress1 = addr.address_line1;
+    if (addr.address_line2) this.orgAddress2 = addr.address_line2;
+    if (addr.city) this.orgCity = addr.city;
+    if (addr.state) this.orgState = addr.state;
+    if (addr.postal_code) this.orgPostalCode = addr.postal_code;
+    if (addr.country) this.orgCountry = addr.country;
+  }
+
+  onPhoneInput() {
+    this.orgPhone = formatIndianPhone(this.orgPhone);
+  }
+
   async createOrg() {
-    if (!this.orgName) return;
+    if (!this.orgName || !this.orgEmail || !this.orgPhone || !this.orgAddress1) {
+      const toast = await this.toastCtrl.create({ message: 'Name, email, phone, and address are required', duration: 3000, color: 'danger' });
+      toast.present();
+      return;
+    }
+    if (!isValidEmail(this.orgEmail)) {
+      const toast = await this.toastCtrl.create({ message: 'Please enter a valid email address', duration: 3000, color: 'danger' });
+      toast.present();
+      return;
+    }
+    if (!isValidIndianPhone(this.orgPhone)) {
+      const toast = await this.toastCtrl.create({ message: 'Please enter a valid Indian phone number (+91 XXXXX XXXXX)', duration: 3000, color: 'danger' });
+      toast.present();
+      return;
+    }
     const loading = await this.loadingCtrl.create({ message: 'Creating organization...' });
     await loading.present();
     try {
@@ -173,11 +240,20 @@ export class SelectOrgPage implements OnInit {
     if (org) {
       this.orgService.setCurrentOrg(org);
     }
+    this.router.navigate(['/organization']);
+  }
+
+  goBack() {
     this.router.navigate(['/dashboard']);
   }
 
   async logout() {
-    await this.authService.logout();
-    this.router.navigate(['/login']);
+    this.loggingOut = true;
+    try {
+      await this.authService.logout();
+      this.router.navigate(['/login']);
+    } finally {
+      this.loggingOut = false;
+    }
   }
 }

@@ -1,0 +1,342 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-button (click)="goBack()"><ion-icon name="arrow-back"></ion-icon></ion-button></ion-buttons>
+    <ion-title>Getting Started</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-grid fixed>
+
+    <!-- Header -->
+    <div class="ion-text-center ion-margin-bottom">
+      <ion-icon name="rocket-outline" color="primary" style="font-size: 3em;"></ion-icon>
+      <h1 style="margin: 8px 0 4px;">Welcome to Nirvign</h1>
+      <p><ion-text color="medium">Follow these steps to get up and running</ion-text></p>
+    </div>
+
+    <!-- ===== SELLING FLOW ===== -->
+    <h2 class="section-heading">
+      <ion-icon name="trending-up-outline" color="success"></ion-icon>
+      Selling Flow
+    </h2>
+    <p class="section-sub"><ion-text color="medium">Create invoices and get paid</ion-text></p>
+
+    <!-- Step 1 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number">1</div>
+      <ion-card class="step-card" button (click)="navigate('/organization')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-primary">
+                <ion-icon name="business-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Set Up Organization</h3>
+              <p>Add your company name, GSTIN, address, and contact info</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number">2</div>
+      <ion-card class="step-card" button (click)="navigate('/organization')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-secondary">
+                <ion-icon name="people-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Invite Team Members</h3>
+              <p>Add colleagues by email — they get instant access</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number">3</div>
+      <ion-card class="step-card" button (click)="navigate('/products')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-tertiary">
+                <ion-icon name="pricetag-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Add Sellables</h3>
+              <p>Define products or services you sell — with HSN/SAC, rates, and GST</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number">4</div>
+      <ion-card class="step-card" button (click)="navigate('/customers')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-warning">
+                <ion-icon name="person-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Add Customers</h3>
+              <p>Set up the companies or people you invoice</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number">5</div>
+      <ion-card class="step-card" button (click)="navigate('/create-invoice')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-success">
+                <ion-icon name="document-text-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Create Invoice</h3>
+              <p>Pick a customer, add line items, and generate a GST-compliant invoice</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Visual flow arrow -->
+    <div class="flow-summary ion-text-center ion-margin-top">
+      <ion-chip color="primary" outline>
+        <ion-icon name="business-outline"></ion-icon>
+        <ion-label>Org</ion-label>
+      </ion-chip>
+      <ion-icon name="arrow-forward" color="medium" class="flow-arrow"></ion-icon>
+      <ion-chip color="tertiary" outline>
+        <ion-icon name="pricetag-outline"></ion-icon>
+        <ion-label>Sellables</ion-label>
+      </ion-chip>
+      <ion-icon name="arrow-forward" color="medium" class="flow-arrow"></ion-icon>
+      <ion-chip color="warning" outline>
+        <ion-icon name="person-outline"></ion-icon>
+        <ion-label>Customers</ion-label>
+      </ion-chip>
+      <ion-icon name="arrow-forward" color="medium" class="flow-arrow"></ion-icon>
+      <ion-chip color="success" outline>
+        <ion-icon name="document-text-outline"></ion-icon>
+        <ion-label>Invoice</ion-label>
+      </ion-chip>
+    </div>
+
+    <!-- Divider -->
+    <div class="section-divider"></div>
+
+    <!-- ===== PURCHASING FLOW ===== -->
+    <h2 class="section-heading">
+      <ion-icon name="trending-down-outline" color="tertiary"></ion-icon>
+      Purchasing Flow
+    </h2>
+    <p class="section-sub"><ion-text color="medium">Create purchase orders for your vendors</ion-text></p>
+
+    <!-- Step 1 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number alt">1</div>
+      <ion-card class="step-card" button (click)="navigate('/organization')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-primary">
+                <ion-icon name="business-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Set Up Organization</h3>
+              <p>Add your company name, GSTIN, address, and contact info</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number alt">2</div>
+      <ion-card class="step-card" button (click)="navigate('/organization')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-secondary">
+                <ion-icon name="people-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Invite Team Members</h3>
+              <p>Add colleagues by email — they get instant access</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number alt">3</div>
+      <ion-card class="step-card" button (click)="navigate('/products')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-tertiary">
+                <ion-icon name="swap-horizontal-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Add Purchasables</h3>
+              <p>Define products or services you buy — with rates and tax details</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number alt">4</div>
+      <ion-card class="step-card" button (click)="navigate('/vendors')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-warning">
+                <ion-icon name="cart-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Add Vendors</h3>
+              <p>Set up the suppliers you order from</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="flow-step">
+      <div class="step-connector"></div>
+      <div class="step-number alt">5</div>
+      <ion-card class="step-card" button (click)="navigate('/create-po')">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col size="auto">
+              <div class="step-icon-wrap bg-success">
+                <ion-icon name="clipboard-outline"></ion-icon>
+              </div>
+            </ion-col>
+            <ion-col>
+              <h3>Create Purchase Order</h3>
+              <p>Pick a vendor, add items, and generate a PO</p>
+            </ion-col>
+            <ion-col size="auto"><ion-icon name="chevron-forward" color="medium"></ion-icon></ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- Visual flow arrow -->
+    <div class="flow-summary ion-text-center ion-margin-top">
+      <ion-chip color="primary" outline>
+        <ion-icon name="business-outline"></ion-icon>
+        <ion-label>Org</ion-label>
+      </ion-chip>
+      <ion-icon name="arrow-forward" color="medium" class="flow-arrow"></ion-icon>
+      <ion-chip color="tertiary" outline>
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <ion-label>Purchasables</ion-label>
+      </ion-chip>
+      <ion-icon name="arrow-forward" color="medium" class="flow-arrow"></ion-icon>
+      <ion-chip color="warning" outline>
+        <ion-icon name="cart-outline"></ion-icon>
+        <ion-label>Vendors</ion-label>
+      </ion-chip>
+      <ion-icon name="arrow-forward" color="medium" class="flow-arrow"></ion-icon>
+      <ion-chip color="success" outline>
+        <ion-icon name="clipboard-outline"></ion-icon>
+        <ion-label>PO</ion-label>
+      </ion-chip>
+    </div>
+
+    <!-- Divider -->
+    <div class="section-divider"></div>
+
+    <!-- Tips -->
+    <h2 class="section-heading">
+      <ion-icon name="bulb-outline" color="warning"></ion-icon>
+      Tips
+    </h2>
+
+    <ion-card>
+      <ion-card-content>
+        <ion-list lines="none">
+          <ion-item>
+            <ion-icon name="sync-outline" slot="start" color="primary"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <p>All data syncs in real-time — changes show instantly across all logged-in users</p>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="document-text-outline" slot="start" color="tertiary"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <p>Set up document types (Tax Invoice, Proforma, PO, etc.) in Organization > Documents — numbering is automatic</p>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="shield-checkmark-outline" slot="start" color="success"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <p>Only the organization owner can edit settings, manage members, or delete the org</p>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="calculator-outline" slot="start" color="warning"></ion-icon>
+            <ion-label class="ion-text-wrap">
+              <p>GST is auto-calculated on invoices — CGST+SGST for same-state, IGST for inter-state</p>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+  </ion-grid>
+</ion-content>

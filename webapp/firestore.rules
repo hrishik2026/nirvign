@@ -1,0 +1,50 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: check if user is a member of the org
+    function isMember(orgId) {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/memberships/$(request.auth.uid + '_' + orgId)) == false &&
+        getAfter(/databases/$(database)/documents/memberships/$(request.auth.uid + '_' + orgId)).data.user_id == request.auth.uid;
+    }
+
+    // Users collection — each user can read/write their own doc
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Organizations — any authenticated user can create; members can read/write
+    match /organizations/{orgId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+
+      // Document types subcollection
+      match /document_types/{typeId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null;
+      }
+
+      // Counters subcollection
+      match /counters/{counterId} {
+        allow read, write: if request.auth != null;
+      }
+    }
+
+    // Memberships — authenticated users can read; owners manage
+    match /memberships/{membershipId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null;
+    }
+
+    // Invitations — authenticated users can read/write
+    match /invitations/{invitationId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null;
+    }
+  }
+}

@@ -46,6 +46,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   // Recent activity
   recentActivity: any[] = [];
 
+  loggingOut = false;
+
   menuItems = [
     { title: 'Dashboard', url: '/dashboard', icon: 'home-outline' },
     { title: 'Invoices', url: '/invoices', icon: 'document-text-outline' },
@@ -54,7 +56,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     { title: 'Vendors', url: '/vendors', icon: 'cart-outline' },
     { title: 'Sellables', url: '/products', icon: 'pricetag-outline' },
     { title: 'Purchasables', url: '/products', icon: 'swap-horizontal-outline' },
-    { title: 'Organization', url: '/organization', icon: 'business-outline' }
+    { title: 'Organization', url: '/organization', icon: 'business-outline' },
+    { title: 'Help', url: '/help', icon: 'help-circle-outline' }
   ];
 
   constructor(
@@ -216,7 +219,12 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   async logout() {
-    await this.authService.logout();
-    this.router.navigate(['/login']);
+    this.loggingOut = true;
+    try {
+      await this.authService.logout();
+      this.router.navigate(['/login']);
+    } finally {
+      this.loggingOut = false;
+    }
   }
 }

@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import {
-  Firestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc,
-  deleteDoc, query, where, writeBatch, collectionData, docData, runTransaction
+  Firestore, collection, doc, getDocs, setDoc, addDoc, updateDoc,
+  deleteDoc, query, where, collectionData, docData, runTransaction
 } from '@angular/fire/firestore';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest } from 'rxjs';
 import { filter, map, switchMap, take } from 'rxjs/operators';
 import { Organization, Membership, Invitation, DocumentType } from '../models/interfaces';
 import { AuthService } from './auth.service';
@@ -12,7 +13,9 @@ import { AuthService } from './auth.service';
 export class OrgService {
   private firestore = inject(Firestore);
   private authService = inject(AuthService);
+  private router = inject(Router);
   private currentOrgSubject = new BehaviorSubject<Organization | null>(null);
+  private membershipWatcherSub: Subscription | null = null;
   currentOrg$ = this.currentOrgSubject.asObservable();
 
   /** Waits for auth to be ready, then emits current org reactively. */
@@ -31,6 +34,25 @@ export class OrgService {
         this.currentOrgSubject.next(JSON.parse(stored));
       } catch {}
     }
+    this.startMembershipWatcher();
+  }
+
+  /** Watches the current user's membership and org status. Redirects if removed or org deleted/suspended. */
+  private startMembershipWatcher() {
+    combineLatest([this.authService.user$, this.currentOrg$]).subscribe(([user, org]) => {
+      this.membershipWatcherSub?.unsubscribe();
+      if (!user || !org) return;
+
+      this.membershipWatcherSub = combineLatest([
+        this.getUserMembership(user.id, org.id),
+        this.getOrganization(org.id)
+      ]).subscribe(([membership, liveOrg]) => {
+        if (!membership || !liveOrg || liveOrg.status !== 'active') {
+          this.setCurrentOrg(null);
+          this.router.navigate(['/select-org']);
+        }
+      });
+    });
   }
 
   get currentOrg(): Organization | null {
@@ -67,6 +89,7 @@ export class OrgService {
       name: org.name || '',
       owner_email: org.owner_email || '',
       status: 'active',
+      status_date: new Date().toISOString(),
       gstin: org.gstin || '',
       email: org.email || '',
       phone: org.phone || '',
@@ -100,15 +123,10 @@ export class OrgService {
   }
 
   async deleteOrganization(orgId: string): Promise<void> {
-    const q = query(
-      collection(this.firestore, 'memberships'),
-      where('organization_id', '==', orgId)
-    );
-    const memberships = await getDocs(q);
-    const batch = writeBatch(this.firestore);
-    memberships.docs.forEach(d => batch.delete(d.ref));
-    batch.delete(doc(this.firestore, 'organizations', orgId));
-    await batch.commit();
+    await updateDoc(doc(this.firestore, 'organizations', orgId), {
+      status: 'deleted',
+      status_date: new Date().toISOString()
+    });
     if (this.currentOrg?.id === orgId) {
       this.setCurrentOrg(null);
     }

@@ -5,6 +5,8 @@ import { AuthService } from '../../services/auth.service';
 import { OrgService } from '../../services/org.service';
 import { Organization, Invitation, Membership } from '../../models/interfaces';
 import { firstValueFrom } from 'rxjs';
+import { ParsedAddress } from '../../shared/directives/places-autocomplete.directive';
+import { isValidEmail, isValidIndianPhone, formatIndianPhone } from '../../shared/validators';
 
 @Component({
   selector: 'app-register',
@@ -25,12 +27,13 @@ export class RegisterPage {
   invitations: Invitation[] = [];
   existingOrgs: { membership: Membership; org?: Organization }[] = [];
   showCreateOrg = false;
+  loggingOut = false;
 
   // Create org fields
   orgName = '';
   orgGstin = '';
   orgEmail = '';
-  orgPhone = '';
+  orgPhone = '+91 ';
   orgWebsite = '';
   orgAddress1 = '';
   orgAddress2 = '';
@@ -123,7 +126,9 @@ export class RegisterPage {
     this.existingOrgs = [];
     for (const m of memberships) {
       const org = await firstValueFrom(this.orgService.getOrganization(m.organization_id));
-      this.existingOrgs.push({ membership: m, org });
+      if (org && org.status !== 'deleted') {
+        this.existingOrgs.push({ membership: m, org });
+      }
     }
 
     if (this.existingOrgs.length === 0 && invitations.length === 0) {
@@ -132,6 +137,10 @@ export class RegisterPage {
   }
 
   async selectOrg(org: Organization) {
+    if (org.status === 'suspended') {
+      this.showToast('This organization has been suspended by the administrator', 'warning');
+      return;
+    }
     if (org.status !== 'active') {
       this.showToast('This organization is not active');
       return;
@@ -145,9 +154,30 @@ export class RegisterPage {
     this.orgStep = 1;
   }
 
+  onPlaceChanged(addr: ParsedAddress) {
+    if (addr.address_line1) this.orgAddress1 = addr.address_line1;
+    if (addr.address_line2) this.orgAddress2 = addr.address_line2;
+    if (addr.city) this.orgCity = addr.city;
+    if (addr.state) this.orgState = addr.state;
+    if (addr.postal_code) this.orgPostalCode = addr.postal_code;
+    if (addr.country) this.orgCountry = addr.country;
+  }
+
+  onPhoneInput() {
+    this.orgPhone = formatIndianPhone(this.orgPhone);
+  }
+
   async createOrg() {
-    if (!this.orgName) {
-      this.showToast('Organization name is required');
+    if (!this.orgName || !this.orgEmail || !this.orgPhone || !this.orgAddress1) {
+      this.showToast('Name, email, phone, and address are required');
+      return;
+    }
+    if (!isValidEmail(this.orgEmail)) {
+      this.showToast('Please enter a valid email address');
+      return;
+    }
+    if (!isValidIndianPhone(this.orgPhone)) {
+      this.showToast('Please enter a valid Indian phone number (+91 XXXXX XXXXX)');
       return;
     }
     const loading = await this.loadingCtrl.create({ message: 'Creating organization...' });
@@ -249,15 +279,20 @@ export class RegisterPage {
   }
 
   async logout() {
-    await this.authService.logout();
-    this.router.navigate(['/login']);
+    this.loggingOut = true;
+    try {
+      await this.authService.logout();
+      this.router.navigate(['/login']);
+    } finally {
+      this.loggingOut = false;
+    }
   }
 
   getStatusColor(status: string): string {
     switch (status) {
       case 'active': return 'success';
       case 'suspended': return 'warning';
-      case 'rolled_off': return 'danger';
+      case 'deleted': return 'danger';
       default: return 'medium';
     }
   }

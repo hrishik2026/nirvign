@@ -9,7 +9,8 @@ export interface Organization {
   id: string;
   name: string;
   owner_email: string;
-  status: 'active' | 'suspended' | 'rolled_off';
+  status: 'active' | 'suspended' | 'deleted';
+  status_date?: string;
   gstin?: string;
   email?: string;
   phone?: string;

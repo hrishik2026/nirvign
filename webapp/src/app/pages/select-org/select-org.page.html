@@ -1,34 +1,53 @@
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start" *ngIf="isSwitchMode">
+      <ion-button (click)="goBack()"><ion-icon name="arrow-back"></ion-icon></ion-button>
+    </ion-buttons>
     <ion-title>Select Organization</ion-title>
     <ion-buttons slot="end">
-      <ion-button color="danger" (click)="logout()">
-        <ion-icon name="log-out-outline" slot="start"></ion-icon> Logout
+      <ion-button color="danger" (click)="logout()" [disabled]="loggingOut">
+        <ion-icon name="log-out-outline" slot="start"></ion-icon> {{ loggingOut ? 'Logging out...' : 'Logout' }}
       </ion-button>
     </ion-buttons>
+  </ion-toolbar>
+  <!-- Step indicators when creating org -->
+  <ion-toolbar *ngIf="showCreateOrg">
+    <ion-segment [value]="orgStep.toString()" disabled mode="md">
+      <ion-segment-button value="1"><ion-label>Org Data</ion-label></ion-segment-button>
+      <ion-segment-button value="2"><ion-label>Documents</ion-label></ion-segment-button>
+      <ion-segment-button value="3"><ion-label>Invite</ion-label></ion-segment-button>
+    </ion-segment>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
   <ion-grid fixed>
-    <ion-row class="ion-justify-content-center">
-      <ion-col size="12" size-md="8" size-lg="6">
 
-        <!-- Org list -->
-        <ng-container *ngIf="!showCreateOrg">
+    <!-- Org list (narrow centered) -->
+    <ng-container *ngIf="!showCreateOrg">
+      <ion-row class="ion-justify-content-center">
+        <ion-col size="12" size-md="8" size-lg="6">
           <h2 *ngIf="orgs.length > 0">Your Organizations</h2>
           <ion-list *ngIf="orgs.length > 0">
-            <ion-item *ngFor="let item of orgs" (click)="selectOrg(item.org!)" button detail>
-              <ion-icon name="business-outline" slot="start" color="primary"></ion-icon>
-              <ion-label>
+            <ion-item *ngFor="let item of orgs" (click)="selectOrg(item.org!)" button [detail]="item.org?.status === 'active'">
+              <ion-icon name="business-outline" slot="start" [color]="item.org?.status === 'active' ? 'primary' : 'medium'"></ion-icon>
+              <ion-label [class.ion-text-muted]="item.org?.status !== 'active'">
                 <h2>{{ item.org?.name }}</h2>
                 <p>{{ item.membership.role }}</p>
+                <p *ngIf="item.org?.status === 'suspended'" class="ion-text-color-warning" style="color: var(--ion-color-warning);">
+                  <ion-icon name="warning-outline"></ion-icon> Suspended by administrator
+                </p>
               </ion-label>
               <ion-badge [color]="getStatusColor(item.org?.status || '')">{{ item.org?.status }}</ion-badge>
             </ion-item>
           </ion-list>
 
-          <div *ngIf="orgs.length === 0" class="ion-text-center ion-padding">
+          <div *ngIf="loading" class="ion-text-center ion-padding">
+            <ion-spinner name="crescent"></ion-spinner>
+            <p><ion-text color="medium">Loading organizations...</ion-text></p>
+          </div>
+
+          <div *ngIf="!loading && orgs.length === 0" class="ion-text-center ion-padding">
             <ion-icon name="business-outline" color="medium" size="large"></ion-icon>
             <p><ion-text color="medium">You don't belong to any organization yet.</ion-text></p>
           </div>
@@ -37,119 +56,180 @@
             <ion-icon name="add-circle-outline" slot="start"></ion-icon>
             Create New Organization
           </ion-button>
-        </ng-container>
+        </ion-col>
+      </ion-row>
+    </ng-container>
 
-        <!-- Create Org Wizard -->
-        <ng-container *ngIf="showCreateOrg">
+    <!-- Create Org Wizard (wide, matching org page style) -->
+    <ng-container *ngIf="showCreateOrg">
 
-          <!-- Step indicators -->
-          <ion-segment [value]="orgStep.toString()" disabled>
-            <ion-segment-button value="1">
-              <ion-label>1. Profile</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="2">
-              <ion-label>2. Documents</ion-label>
-            </ion-segment-button>
-            <ion-segment-button value="3">
-              <ion-label>3. Invite</ion-label>
-            </ion-segment-button>
-          </ion-segment>
+      <ion-button fill="clear" size="small" (click)="showCreateOrg = false" *ngIf="orgStep === 1" class="ion-margin-bottom">
+        <ion-icon name="arrow-back" slot="start"></ion-icon> Back to list
+      </ion-button>
 
-          <ion-button fill="clear" size="small" (click)="showCreateOrg = false" *ngIf="orgStep === 1" class="ion-margin-top">
-            <ion-icon name="arrow-back" slot="start"></ion-icon> Back to list
-          </ion-button>
+      <!-- Step 1: Organization Profile -->
+      <ng-container *ngIf="orgStep === 1">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>Organization Profile</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-row>
+              <ion-col size="12" size-md="6">
+                <ion-item><ion-label position="floating">Organization Name *</ion-label><ion-input [(ngModel)]="orgName"></ion-input></ion-item>
+              </ion-col>
+              <ion-col size="12" size-md="3">
+                <ion-item><ion-label position="floating">GSTIN</ion-label><ion-input [(ngModel)]="orgGstin" placeholder="22AAAAA0000A1Z5" (ionInput)="orgGstin = orgGstin.toUpperCase()"></ion-input></ion-item>
+              </ion-col>
+            </ion-row>
 
-          <!-- Step 1: Profile -->
-          <ion-card *ngIf="orgStep === 1">
-            <ion-card-content>
-              <ion-item><ion-label position="floating">Organization Name *</ion-label><ion-input [(ngModel)]="orgName"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">GSTIN</ion-label><ion-input [(ngModel)]="orgGstin" placeholder="22AAAAA0000A1Z5"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">Email</ion-label><ion-input type="email" [(ngModel)]="orgEmail"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">Phone</ion-label><ion-input type="tel" [(ngModel)]="orgPhone"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">Website</ion-label><ion-input type="url" [(ngModel)]="orgWebsite"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">Address Line 1</ion-label><ion-input [(ngModel)]="orgAddress1"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">Address Line 2</ion-label><ion-input [(ngModel)]="orgAddress2"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">City</ion-label><ion-input [(ngModel)]="orgCity"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">State</ion-label><ion-input [(ngModel)]="orgState"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">Postal Code</ion-label><ion-input [(ngModel)]="orgPostalCode"></ion-input></ion-item>
-              <ion-item><ion-label position="floating">Country</ion-label><ion-input [(ngModel)]="orgCountry"></ion-input></ion-item>
-              <ion-button expand="block" class="ion-margin-top" (click)="createOrg()">Next</ion-button>
-            </ion-card-content>
-          </ion-card>
+            <ion-item-divider><ion-label>Contact Information</ion-label></ion-item-divider>
+            <ion-row>
+              <ion-col size="12" size-md="6">
+                <ion-item><ion-label position="floating">Email *</ion-label><ion-input type="email" [(ngModel)]="orgEmail"></ion-input></ion-item>
+              </ion-col>
+              <ion-col size="12" size-md="6">
+                <ion-item><ion-label position="floating">Website</ion-label><ion-input type="url" [(ngModel)]="orgWebsite"></ion-input></ion-item>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+              <ion-col size="12" size-md="6">
+                <ion-item><ion-label position="floating">Phone *</ion-label><ion-input type="tel" [(ngModel)]="orgPhone" placeholder="+91 99999 99999" (ionInput)="onPhoneInput()"></ion-input></ion-item>
+              </ion-col>
+            </ion-row>
 
-          <!-- Step 2: Document Types -->
-          <ion-card *ngIf="orgStep === 2">
-            <ion-card-content>
-              <p><ion-text color="medium">Document types control how your invoices and purchase orders are numbered.</ion-text></p>
+            <ion-item-divider><ion-label>Address</ion-label></ion-item-divider>
+            <ion-item>
+              <ion-label position="floating">Address Line 1 *</ion-label>
+              <ion-input [(ngModel)]="orgAddress1" appPlacesAutocomplete (placeChanged)="onPlaceChanged($event)"></ion-input>
+            </ion-item>
+            <ion-item><ion-label position="floating">Address Line 2</ion-label><ion-input [(ngModel)]="orgAddress2"></ion-input></ion-item>
+            <ion-row>
+              <ion-col size="6" size-md="3">
+                <ion-item><ion-label position="floating">City</ion-label><ion-input [(ngModel)]="orgCity"></ion-input></ion-item>
+              </ion-col>
+              <ion-col size="6" size-md="3">
+                <ion-item><ion-label position="floating">State</ion-label><ion-input [(ngModel)]="orgState"></ion-input></ion-item>
+              </ion-col>
+              <ion-col size="6" size-md="3">
+                <ion-item><ion-label position="floating">Postal Code</ion-label><ion-input [(ngModel)]="orgPostalCode"></ion-input></ion-item>
+              </ion-col>
+              <ion-col size="6" size-md="3">
+                <ion-item><ion-label position="floating">Country</ion-label><ion-input [(ngModel)]="orgCountry"></ion-input></ion-item>
+              </ion-col>
+            </ion-row>
 
-              <h3>Invoice Types</h3>
-              <ion-list>
-                <ion-item *ngFor="let t of invoiceTypes; let i = index">
-                  <ion-grid>
-                    <ion-row class="ion-align-items-end">
-                      <ion-col size="5"><ion-label position="floating">Name</ion-label><ion-input [(ngModel)]="t.name"></ion-input></ion-col>
-                      <ion-col size="3"><ion-label position="floating">Prefix</ion-label><ion-input [(ngModel)]="t.prefix" maxlength="3"></ion-input></ion-col>
-                      <ion-col size="2"><ion-label position="floating">Start</ion-label><ion-input type="number" [(ngModel)]="t.startNumber"></ion-input></ion-col>
-                      <ion-col size="2"><ion-button fill="clear" color="danger" (click)="removeInvoiceType(i)"><ion-icon name="trash-outline"></ion-icon></ion-button></ion-col>
-                    </ion-row>
-                  </ion-grid>
-                </ion-item>
-              </ion-list>
-              <ion-button fill="clear" size="small" (click)="addInvoiceType()"><ion-icon name="add" slot="start"></ion-icon> Add</ion-button>
+            <ion-button expand="block" class="ion-margin-top" (click)="createOrg()">
+              <ion-icon name="arrow-forward" slot="end"></ion-icon> Next: Add Documents
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ng-container>
 
-              <h3>PO Types</h3>
-              <ion-list>
-                <ion-item *ngFor="let t of poTypes; let i = index">
-                  <ion-grid>
-                    <ion-row class="ion-align-items-end">
-                      <ion-col size="5"><ion-label position="floating">Name</ion-label><ion-input [(ngModel)]="t.name"></ion-input></ion-col>
-                      <ion-col size="3"><ion-label position="floating">Prefix</ion-label><ion-input [(ngModel)]="t.prefix" maxlength="3"></ion-input></ion-col>
-                      <ion-col size="2"><ion-label position="floating">Start</ion-label><ion-input type="number" [(ngModel)]="t.startNumber"></ion-input></ion-col>
-                      <ion-col size="2"><ion-button fill="clear" color="danger" (click)="removePoType(i)"><ion-icon name="trash-outline"></ion-icon></ion-button></ion-col>
-                    </ion-row>
-                  </ion-grid>
-                </ion-item>
-              </ion-list>
-              <ion-button fill="clear" size="small" (click)="addPoType()"><ion-icon name="add" slot="start"></ion-icon> Add</ion-button>
+      <!-- Step 2: Document Types -->
+      <ng-container *ngIf="orgStep === 2">
+        <ion-card>
+          <ion-card-header>
+            <ion-row class="ion-align-items-center">
+              <ion-col><ion-card-title>Invoice Types</ion-card-title></ion-col>
+              <ion-col size="auto">
+                <ion-button fill="outline" size="small" (click)="addInvoiceType()">
+                  <ion-icon name="add" slot="start"></ion-icon> Add
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-list>
+              <ion-item *ngFor="let t of invoiceTypes; let i = index">
+                <ion-grid>
+                  <ion-row class="ion-align-items-end">
+                    <ion-col size="5"><ion-label position="floating">Name</ion-label><ion-input [(ngModel)]="t.name"></ion-input></ion-col>
+                    <ion-col size="3"><ion-label position="floating">Prefix</ion-label><ion-input [(ngModel)]="t.prefix" maxlength="3"></ion-input></ion-col>
+                    <ion-col size="2"><ion-label position="floating">Start</ion-label><ion-input type="number" [(ngModel)]="t.startNumber"></ion-input></ion-col>
+                    <ion-col size="2"><ion-button fill="clear" color="danger" (click)="removeInvoiceType(i)"><ion-icon name="trash-outline"></ion-icon></ion-button></ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
 
-              <ion-row class="ion-margin-top">
-                <ion-col><ion-button expand="block" fill="outline" (click)="orgStep = 3">Skip</ion-button></ion-col>
-                <ion-col><ion-button expand="block" (click)="saveDocTypes()">Next</ion-button></ion-col>
-              </ion-row>
-            </ion-card-content>
-          </ion-card>
+        <ion-card>
+          <ion-card-header>
+            <ion-row class="ion-align-items-center">
+              <ion-col><ion-card-title>Purchase Order Types</ion-card-title></ion-col>
+              <ion-col size="auto">
+                <ion-button fill="outline" size="small" (click)="addPoType()">
+                  <ion-icon name="add" slot="start"></ion-icon> Add
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-list>
+              <ion-item *ngFor="let t of poTypes; let i = index">
+                <ion-grid>
+                  <ion-row class="ion-align-items-end">
+                    <ion-col size="5"><ion-label position="floating">Name</ion-label><ion-input [(ngModel)]="t.name"></ion-input></ion-col>
+                    <ion-col size="3"><ion-label position="floating">Prefix</ion-label><ion-input [(ngModel)]="t.prefix" maxlength="3"></ion-input></ion-col>
+                    <ion-col size="2"><ion-label position="floating">Start</ion-label><ion-input type="number" [(ngModel)]="t.startNumber"></ion-input></ion-col>
+                    <ion-col size="2"><ion-button fill="clear" color="danger" (click)="removePoType(i)"><ion-icon name="trash-outline"></ion-icon></ion-button></ion-col>
+                  </ion-row>
+                </ion-grid>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
 
-          <!-- Step 3: Invite -->
-          <ion-card *ngIf="orgStep === 3">
-            <ion-card-content>
-              <p><ion-text color="medium">Invite colleagues to collaborate on your organization.</ion-text></p>
+        <ion-row class="ion-margin-top">
+          <ion-col><ion-button expand="block" fill="outline" (click)="orgStep = 3">Skip</ion-button></ion-col>
+          <ion-col><ion-button expand="block" (click)="saveDocTypes()">
+            <ion-icon name="arrow-forward" slot="end"></ion-icon> Next: Invite Members
+          </ion-button></ion-col>
+        </ion-row>
+      </ng-container>
 
-              <ion-row class="ion-align-items-end">
-                <ion-col>
-                  <ion-item><ion-label position="floating">Email Address</ion-label><ion-input type="email" [(ngModel)]="inviteEmail"></ion-input></ion-item>
-                </ion-col>
-                <ion-col size="auto">
-                  <ion-button (click)="inviteMember()">Invite</ion-button>
-                </ion-col>
-              </ion-row>
+      <!-- Step 3: Invite Members -->
+      <ng-container *ngIf="orgStep === 3">
+        <ion-card>
+          <ion-card-header><ion-card-title>Invite Team Member</ion-card-title></ion-card-header>
+          <ion-card-content>
+            <p><ion-text color="medium">Invite colleagues to collaborate on your organization.</ion-text></p>
+            <ion-row class="ion-align-items-end">
+              <ion-col size="12" size-md="6">
+                <ion-item><ion-label position="floating">Email Address</ion-label><ion-input type="email" [(ngModel)]="inviteEmail"></ion-input></ion-item>
+              </ion-col>
+              <ion-col size="auto">
+                <ion-button (click)="inviteMember()">
+                  <ion-icon name="person-add-outline" slot="start"></ion-icon> Invite
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-card-content>
+        </ion-card>
 
-              <ion-list *ngIf="invitedMembers.length > 0">
-                <ion-item *ngFor="let m of invitedMembers">
-                  <ion-label><h3>{{ m.email }}</h3><p>{{ m.status }}</p></ion-label>
-                  <ion-icon name="checkmark-circle" color="success" slot="end"></ion-icon>
-                </ion-item>
-              </ion-list>
+        <ion-card *ngIf="invitedMembers.length > 0">
+          <ion-card-header><ion-card-title>Invited</ion-card-title></ion-card-header>
+          <ion-card-content>
+            <ion-list>
+              <ion-item *ngFor="let m of invitedMembers">
+                <ion-label><h3>{{ m.email }}</h3><p>{{ m.status }}</p></ion-label>
+                <ion-icon name="checkmark-circle" color="success" slot="end"></ion-icon>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
 
-              <ion-row class="ion-margin-top">
-                <ion-col><ion-button expand="block" fill="outline" (click)="finishWizard()">Skip</ion-button></ion-col>
-                <ion-col><ion-button expand="block" (click)="finishWizard()">Finish</ion-button></ion-col>
-              </ion-row>
-            </ion-card-content>
-          </ion-card>
+        <ion-row class="ion-margin-top">
+          <ion-col><ion-button expand="block" fill="outline" (click)="finishWizard()">Skip</ion-button></ion-col>
+          <ion-col><ion-button expand="block" (click)="finishWizard()">
+            <ion-icon name="checkmark" slot="start"></ion-icon> Finish Setup
+          </ion-button></ion-col>
+        </ion-row>
+      </ng-container>
 
-        </ng-container>
+    </ng-container>
 
-      </ion-col>
-    </ion-row>
   </ion-grid>
 </ion-content>

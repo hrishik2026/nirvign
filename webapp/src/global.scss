@@ -25,3 +25,27 @@ ion-button {
   font-weight: 500;
   letter-spacing: 0.01em;
 }
+
+/* Prevent floating label / placeholder overlap when field is unfocused and empty */
+ion-item:not(.item-has-focus):not(.item-has-value) ion-input {
+  --placeholder-opacity: 0.4;
+  --padding-top: 10px;
+  font-size: 0.85em;
+}
+ion-item:not(.item-has-focus):not(.item-has-value) ion-textarea {
+  --placeholder-opacity: 0.4;
+  --padding-top: 10px;
+  font-size: 0.85em;
+}
+
+/* Unsaved changes alert — inline buttons, right-aligned */
+.unsaved-changes-alert .alert-button-group {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  padding: 8px;
+}
+.unsaved-changes-alert .alert-button-primary {
+  color: var(--ion-color-primary);
+  font-weight: 700;
+}
