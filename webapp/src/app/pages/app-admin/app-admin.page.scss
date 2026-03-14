@@ -21,3 +21,13 @@
     min-width: 120px;
   }
 }
+
+.danger-zone {
+  margin-top: 32px;
+  border: 1px solid var(--ion-color-danger);
+
+  p {
+    margin-bottom: 16px;
+    color: var(--ion-color-medium);
+  }
+}

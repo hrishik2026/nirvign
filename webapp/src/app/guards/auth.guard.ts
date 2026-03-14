@@ -51,7 +51,7 @@ export const noAuthGuard: CanActivateFn = () => {
   );
 };
 
-const APP_ADMIN_EMAILS = ['hrishikeshb@gmail.com', 'rohitbhagwat@gmail.com'];
+const APP_ADMIN_EMAILS = ['hrishikeshb@gmail.com', 'rohit.bhagwat@gmail.com'];
 
 export const appAdminGuard: CanActivateFn = () => {
   const auth = inject(Auth);

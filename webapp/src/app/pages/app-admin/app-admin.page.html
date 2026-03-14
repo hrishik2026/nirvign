@@ -117,5 +117,20 @@
 
     </ng-container>
 
+    <!-- Danger Zone -->
+    <ion-card class="danger-zone" *ngIf="activeTab === 'orgs'">
+      <ion-card-header>
+        <ion-card-title color="danger">Danger Zone</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Delete all data including organizations, users, memberships, invitations, and all org sub-data. Only app admin config and allowed users list will be preserved.</p>
+        <ion-button color="danger" expand="block" (click)="confirmDeleteAllData()" [disabled]="deleting">
+          <ion-spinner *ngIf="deleting" name="crescent" slot="start"></ion-spinner>
+          <ion-icon *ngIf="!deleting" name="nuclear-outline" slot="start"></ion-icon>
+          {{ deleting ? 'Deleting...' : 'Delete All Data' }}
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
   </ion-grid>
 </ion-content>
