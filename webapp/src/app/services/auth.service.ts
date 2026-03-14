@@ -20,16 +20,27 @@ export class AuthService {
   authReady$ = this.authReadySubject.asObservable();
 
   constructor() {
-    // Handle Google redirect result (for mobile browsers where popup is blocked)
-    getRedirectResult(this.auth).then(async (credential) => {
+    this.initAuth();
+  }
+
+  private async initAuth() {
+    // Handle Google redirect result first (for mobile browsers where popup is blocked)
+    // Must complete before we signal auth ready, so the user doc exists
+    try {
+      const credential = await getRedirectResult(this.auth);
       if (credential?.user) {
         await this.ensureUserDoc(credential.user);
       }
-    }).catch(() => {});
+    } catch {}
 
     onAuthStateChanged(this.auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const userDoc = await getDoc(doc(this.firestore, 'users', firebaseUser.uid));
+        // User doc may have just been created by ensureUserDoc above — retry once if missing
+        let userDoc = await getDoc(doc(this.firestore, 'users', firebaseUser.uid));
+        if (!userDoc.exists()) {
+          await this.ensureUserDoc(firebaseUser);
+          userDoc = await getDoc(doc(this.firestore, 'users', firebaseUser.uid));
+        }
         if (userDoc.exists()) {
           this.currentUserSubject.next({ ...userDoc.data(), id: firebaseUser.uid } as User);
         } else {
