@@ -101,7 +101,6 @@ export class RegisterPage {
     await loading.present();
     try {
       const credential = await this.authService.googleSignIn();
-      if (!credential) { loading.dismiss(); return; } // Redirect flow — page will reload
       this.userId = credential.user!.uid;
       this.email = credential.user!.email || '';
       this.fullName = credential.user!.displayName || '';
