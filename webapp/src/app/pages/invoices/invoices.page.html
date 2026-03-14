@@ -20,9 +20,9 @@
 
 <ion-content class="ion-padding">
 
-  <div class="page-hint">
+  <div class="page-hint" *ngIf="trainingMode">
     <ion-icon name="information-circle-outline"></ion-icon>
-    <span>Your sales invoices. Create GST-compliant invoices, track payment status, and keep a record of all billing to your customers.</span>
+    <span>View and manage all your sales invoices. Create GST-compliant invoices with auto-generated invoice numbers, add line items from your product catalog, and track each invoice through its lifecycle — from draft to sent, paid, or overdue. Click any invoice to view or edit its details.</span>
   </div>
 
   <!-- Empty state -->

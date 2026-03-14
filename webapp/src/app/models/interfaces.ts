@@ -24,6 +24,7 @@ export interface Organization {
   country?: string;
   default_currency?: string;
   logo_url?: string;
+  training_mode?: boolean;
 }
 
 export interface Membership {

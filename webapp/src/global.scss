@@ -61,15 +61,20 @@ ion-item:not(.item-has-focus):not(.item-has-value) ion-textarea {
 .page-hint {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 8px 4px 12px;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
   font-size: 0.85em;
-  color: var(--ion-color-medium);
-  line-height: 1.45;
+  color: #1a1a1a;
+  line-height: 1.5;
+  background: var(--ion-color-primary-tint, #e8f0fe);
+  border-left: 3px solid var(--ion-color-primary);
+  border-radius: 6px;
 
   ion-icon {
     margin-top: 2px;
-    font-size: 1.1em;
+    font-size: 1.2em;
     flex-shrink: 0;
+    color: var(--ion-color-primary);
   }
 }

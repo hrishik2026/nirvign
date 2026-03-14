@@ -32,6 +32,8 @@ export class VendorsPage implements OnInit, OnDestroy {
 
   deleteTarget: Vendor | null = null;
 
+  get trainingMode(): boolean { return !!this.orgService.currentOrg?.training_mode; }
+
   constructor(
     private dataService: DataService,
     private orgService: OrgService,

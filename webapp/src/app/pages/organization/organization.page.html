@@ -17,6 +17,24 @@
 
     <!-- ORG DATA TAB -->
     <ng-container *ngIf="activeTab === 'org'">
+
+      <!-- Training Mode Toggle -->
+      <ion-card *ngIf="isOwner" class="training-mode-card">
+        <ion-card-content>
+          <ion-row class="ion-align-items-center">
+            <ion-col>
+              <h3 style="margin: 0; font-weight: 600;">Training Mode</h3>
+              <p style="margin: 4px 0 0; font-size: 0.85em; color: var(--ion-color-medium);">
+                When enabled, helpful tips and hints appear on every page to guide new users.
+              </p>
+            </ion-col>
+            <ion-col size="auto">
+              <ion-toggle [checked]="org?.training_mode" (ionChange)="toggleTrainingMode($event)"></ion-toggle>
+            </ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+
       <ion-card>
         <ion-card-header>
           <ion-row class="ion-align-items-center">

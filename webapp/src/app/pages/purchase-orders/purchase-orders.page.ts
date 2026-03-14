@@ -30,6 +30,8 @@ export class PurchaseOrdersPage implements OnInit, OnDestroy {
 
   deleteTarget: PurchaseOrder | null = null;
 
+  get trainingMode(): boolean { return !!this.orgService.currentOrg?.training_mode; }
+
   constructor(
     private dataService: DataService,
     private orgService: OrgService,

@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import {
-  Auth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword,
+  Auth, signInWithPopup, signInWithRedirect, getRedirectResult,
+  GoogleAuthProvider, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, signOut, onAuthStateChanged, UserCredential
 } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
@@ -19,6 +20,13 @@ export class AuthService {
   authReady$ = this.authReadySubject.asObservable();
 
   constructor() {
+    // Handle Google redirect result (for mobile browsers where popup is blocked)
+    getRedirectResult(this.auth).then(async (credential) => {
+      if (credential?.user) {
+        await this.ensureUserDoc(credential.user);
+      }
+    }).catch(() => {});
+
     onAuthStateChanged(this.auth, async (firebaseUser) => {
       if (firebaseUser) {
         const userDoc = await getDoc(doc(this.firestore, 'users', firebaseUser.uid));
@@ -32,6 +40,18 @@ export class AuthService {
       }
       this.authReadySubject.next(true);
     });
+  }
+
+  private async ensureUserDoc(user: any): Promise<void> {
+    const userDoc = await getDoc(doc(this.firestore, 'users', user.uid));
+    if (!userDoc.exists()) {
+      await setDoc(doc(this.firestore, 'users', user.uid), {
+        id: user.uid,
+        email: user.email,
+        name: user.displayName || 'User',
+        auth_provider: 'google'
+      });
+    }
   }
 
   get currentUser(): User | null {
@@ -63,21 +83,22 @@ export class AuthService {
     return credential;
   }
 
-  async googleSignIn(): Promise<UserCredential> {
+  async googleSignIn(): Promise<UserCredential | null> {
     const provider = new GoogleAuthProvider();
-    const credential = await signInWithPopup(this.auth, provider);
-    if (credential.user) {
-      const userDoc = await getDoc(doc(this.firestore, 'users', credential.user.uid));
-      if (!userDoc.exists()) {
-        await setDoc(doc(this.firestore, 'users', credential.user.uid), {
-          id: credential.user.uid,
-          email: credential.user.email,
-          name: credential.user.displayName || 'User',
-          auth_provider: 'google'
-        });
+    try {
+      const credential = await signInWithPopup(this.auth, provider);
+      if (credential.user) {
+        await this.ensureUserDoc(credential.user);
       }
+      return credential;
+    } catch (err: any) {
+      if (err.code === 'auth/popup-blocked' || err.code === 'auth/cancelled-popup-request') {
+        // Mobile browsers block popups — fall back to redirect
+        await signInWithRedirect(this.auth, provider);
+        return null;
+      }
+      throw err;
     }
-    return credential;
   }
 
   async logout(): Promise<void> {

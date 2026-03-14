@@ -39,6 +39,8 @@ export class ProductsPage implements OnInit, OnDestroy {
     { label: 'Other', options: ['monthly', 'annual', 'lumpsum'] }
   ];
 
+  get trainingMode(): boolean { return !!this.orgService.currentOrg?.training_mode; }
+
   constructor(
     private dataService: DataService,
     private orgService: OrgService,

@@ -45,6 +45,7 @@ export class LoginPage {
     await loading.present();
     try {
       const credential = await this.authService.googleSignIn();
+      if (!credential) { loading.dismiss(); return; } // Redirect flow — page will reload
       await this.navigateAfterLogin(credential.user!.uid);
     } catch (err: any) {
       this.showToast(err.message || 'Google sign-in failed');

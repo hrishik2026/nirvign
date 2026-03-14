@@ -20,9 +20,9 @@
 
 <ion-content class="ion-padding">
 
-  <div class="page-hint">
+  <div class="page-hint" *ngIf="trainingMode">
     <ion-icon name="information-circle-outline"></ion-icon>
-    <span>Products and services you sell. Set default rates, GST, and units per pricing variant — you can still override them per customer when creating an invoice.</span>
+    <span>Define the products and services your organization sells. For each item, you can set up multiple pricing variants with different rates, units, and GST percentages (e.g., "per piece" vs "per box"). When creating an invoice, you'll pick a product and variant — rates auto-fill but can still be overridden per line item.</span>
   </div>
 
   <!-- Add / Edit Form -->

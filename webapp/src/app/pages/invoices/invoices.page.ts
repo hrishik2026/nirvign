@@ -30,6 +30,8 @@ export class InvoicesPage implements OnInit, OnDestroy {
 
   deleteTarget: Invoice | null = null;
 
+  get trainingMode(): boolean { return !!this.orgService.currentOrg?.training_mode; }
+
   constructor(
     private dataService: DataService,
     private orgService: OrgService,

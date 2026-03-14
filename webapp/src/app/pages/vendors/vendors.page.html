@@ -20,9 +20,9 @@
 
 <ion-content class="ion-padding">
 
-  <div class="page-hint">
+  <div class="page-hint" *ngIf="trainingMode">
     <ion-icon name="information-circle-outline"></ion-icon>
-    <span>Suppliers you buy from. Add their details here so you can quickly select them when creating purchase orders.</span>
+    <span>Manage your suppliers and vendors. Add their contact details, payment terms, and bank information here — they'll be available for quick selection when you create purchase orders. Keeping vendor records up to date ensures accurate PO generation.</span>
   </div>
 
   <!-- Add / Edit Form -->

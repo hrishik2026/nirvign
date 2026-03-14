@@ -334,6 +334,16 @@ export class OrganizationPage implements OnInit, OnDestroy {
     this.router.navigate(['/select-org']);
   }
 
+  async toggleTrainingMode(event: any) {
+    const enabled = event.detail.checked;
+    try {
+      await this.orgService.updateOrganization(this.org!.id, { training_mode: enabled });
+    } catch (err: any) {
+      const toast = await this.toastCtrl.create({ message: err.message, duration: 3000, color: 'danger' });
+      toast.present();
+    }
+  }
+
   async goBack() {
     if (this.isOrgDirty) {
       const result = await this.confirmUnsavedChanges();

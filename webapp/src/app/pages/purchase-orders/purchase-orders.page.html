@@ -20,9 +20,9 @@
 
 <ion-content class="ion-padding">
 
-  <div class="page-hint">
+  <div class="page-hint" *ngIf="trainingMode">
     <ion-icon name="information-circle-outline"></ion-icon>
-    <span>Your purchase orders. Create POs for vendors, track delivery status, and manage what you're buying.</span>
+    <span>View and manage purchase orders sent to your vendors. Create POs with auto-generated PO numbers, add line items, and track each order through its lifecycle — from draft to sent, acknowledged, partially received, or fully received. Click any PO to view or edit its details.</span>
   </div>
 
   <!-- Empty state -->
